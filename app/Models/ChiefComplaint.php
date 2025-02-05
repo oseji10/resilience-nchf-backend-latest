@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class ChiefComplaint extends Model
+{
+    use HasFactory;
+    public $table = 'chief_complaint';
+    protected $fillable = ['name', 'status'];
+}
