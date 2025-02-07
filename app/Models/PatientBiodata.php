@@ -11,7 +11,6 @@ class PatientBiodata extends Model
     public $table = 'patients';
     protected $fillable = [
         'patientId',
-        'encounterId',
         'NIN',
         'userId',
         'chfId',
@@ -78,5 +77,6 @@ class PatientBiodata extends Model
         return $this->belongsTo(User::class, 'userId', 'id');
     }
 
+ 
    
 }

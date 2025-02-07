@@ -32,7 +32,7 @@ use App\Http\Controllers\PermissionsController;
 use App\Models\Zone;
 use App\Models\State;
 use App\Http\Controllers\HospitalController;
-
+use App\Models\Cancer;
 use App\Mail\WelcomeEmail;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController; 
@@ -273,10 +273,27 @@ Route::post('/states', function (Request $request) {
 
 Route::get('/states', function(){
     $states = State::orderBy('stateName')->get();
+    return response()->json($states);
+});
+
+Route::get('/cancers', function(){
+    $cancers = Cancer::orderBy('cancerName')->get();
+    return response()->json($cancers);
+});
+
+Route::post('/cancers', function (Request $request) {
+    $cancers = $request->all(); // Expecting an array of states
+
+    // Bulk insert
+    Cancer::insert($cancers);
+
     return response()->json([
-        'states' => $states
+        'message' => 'Cancers created successfully',
+        'data' => $cancers
     ]);
 });
+
+
 
 Route::post('/send-whatsapp', [UserController::class, 'sendSMS']);
 // Route::post('/send-whatsapp', 'UserController@sendWhatsAppNotificationSMS');

@@ -11,12 +11,17 @@ class HospitalController extends Controller
 {
     public function RetrieveAll()
     {
-        $hospitals = Hospital::with('hubs.subhubs.clusters', 'state.zone', 'hospitalAdmin', 'hospitalCMD')->get();
+        $hospitals = Hospital::all();
         return response()->json($hospitals);
        
     }
 
-    
+    public function hospitalMap()
+    {
+        $hospitals = Hospital::with('hubs.subhubs.clusters', 'state.zone', 'hospitalAdmin', 'hospitalCMD')->get();
+        return response()->json($hospitals);
+       
+    }
 
     public function store(Request $request)
     {
