@@ -10,7 +10,7 @@ use App\Http\Controllers\RefractionCylinderController;
 use App\Http\Controllers\RefractionPrismController;
 use App\Http\Controllers\ChiefComplaintController;
 use App\Http\Controllers\DiagnosisListController;
-use App\Http\Controllers\UsersController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\DoctorsController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ConsultingController;
@@ -28,6 +28,10 @@ use App\Http\Controllers\HMOsController;
 use App\Http\Controllers\ManufacturersController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PermissionsController;
+use App\Models\Zone;
+use App\Models\State;
+use App\Http\Controllers\HospitalController;
 
 use App\Mail\WelcomeEmail;
 use App\Http\Controllers\ProductController;
@@ -87,19 +91,18 @@ Route::put('/patient/{patientId}', [PatientsController::class, 'update']);
 Route::delete('/patient/{patientId}', [PatientsController::class, 'deletePatient']);
 
 
-Route::get('/users', [UsersController::class, 'retrieveAll']);
-Route::post('/users', [UsersController::class, 'store']);
-Route::get('/users/doctors', [UsersController::class, 'doctors']);
-Route::get('/users/nurses', [UsersController::class, 'nurses']);
-Route::get('/users/clinic_receptionists', [UsersController::class, 'clinic_receptionists']);
-Route::get('/users/workshop_receptionists', [UsersController::class, 'workshop_receptionists']);
-Route::get('/users/front_desks', [UsersController::class, 'front_desk']);
-Route::delete('/user/{id}', [UsersController::class, 'deleteUser']);
-Route::put('/user/{id}', [UsersController::class, 'updateUser']);
+Route::get('/users', [UserController::class, 'retrieveAll']);
+Route::post('/users', [UserController::class, 'store']);
+Route::get('/users/doctors', [UserController::class, 'doctors']);
+Route::get('/users/nurses', [UserController::class, 'nurses']);
+Route::get('/users/clinic_receptionists', [UserController::class, 'clinic_receptionists']);
+Route::get('/users/workshop_receptionists', [UserController::class, 'workshop_receptionists']);
+Route::get('/users/front_desks', [UserController::class, 'front_desk']);
+Route::delete('/user/{id}', [UserController::class, 'deleteUser']);
+Route::put('/user/{id}', [UserController::class, 'updateUser']);
 
 
-Route::get('/roles', [RolesController::class, 'retrieveAll']);
-Route::post('/roles', [RolesController::class, 'store']);
+
 
 Route::get('/appointments', [AppointmentsController::class, 'retrieveAll']);
 Route::post('/appointments', [AppointmentsController::class, 'store']);
@@ -121,6 +124,27 @@ Route::delete('/manufacturers/{manufacturerId}', [ManufacturersController::class
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/patients', [PatientsController::class, 'retrieveAll']);
+    
+    Route::post('/states', function (Request $request) {
+        $states = $request->all(); // Expecting an array of states
+    
+        // Bulk insert
+        State::insert($states);
+    
+        return response()->json([
+            'message' => 'States created successfully',
+            'data' => $states
+        ]);
+    });
+    
+    Route::get('/states', function(){
+        $states = State::orderBy('stateName')->get();
+        return response()->json([
+            'states' => $states
+        ]);
+    });
+
     Route::get('/products', [ProductController::class, 'retrieveAll']);
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
@@ -154,11 +178,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/confirm-payment', [BillingController::class, 'updateBillingStatus']);
 
     Route::get('/billings', [BillingController::class, 'retrieveAll']);
-Route::post('/billings', [BillingController::class, 'store']);
-Route::put('/billings/{id}', [BillingController::class, 'update']);
-Route::delete('/billings', [BillingController::class, 'delete']);
+    Route::post('/billings', [BillingController::class, 'store']);
+    Route::put('/billings/{id}', [BillingController::class, 'update']);
+    Route::delete('/billings', [BillingController::class, 'delete']);
+
+   
+    Route::get('/hospitals', [HospitalController::class, 'retrieveAll']);
+    Route::post('/hospitals', [HospitalController::class, 'store']);
+    
+    Route::post('/hospital-users', [UserController::class, 'createHospitalStaff']);
+    
+    Route::post('/hospital-staff', [UserController::class, 'createHospitalStaff']);
+    Route::get('/hospital-staff', [UserController::class, 'hospitalStaff']);
+    
+    Route::post('/hospital-admins', [UserController::class, 'createHospitalAdmin']);
+    Route::get('/hospital-admins', [UserController::class, 'hospitalAdmins']);
+    
+    Route::post('/nicrat-users', [UserController::class, 'createNicratStaff']);
+    
+    Route::post('/cmds', [UserController::class, 'createCMD']);
+    Route::get('/cmds', [UserController::class, 'cmds']);
+    
 });
 
+Route::get('/roles', [RolesController::class, 'retrieveAll']);
+Route::get('/roles/hospital', [RolesController::class, 'hospitalRoles']);
+Route::post('/roles', [RolesController::class, 'store']);
+
+
+Route::get('/user-permissions', [PermissionsController::class, 'getUserPermissions']);
+Route::get('/permissions', [PermissionsController::class, 'getPermissions']);
+Route::post('/permissions', [PermissionsController::class, 'createPermission']);
+Route::post('/assign-role-permissions', [PermissionsController::class, 'assignRoleToPermissions']);
 
 Route::get('/consulting', [ConsultingController::class, 'retrieveAll']);
 Route::post('/consulting', [ConsultingController::class, 'store']);
@@ -193,7 +244,6 @@ Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
 Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
 
-
 Route::get('/test-email', function () {
     try {
         Mail::to('test@example.com')->send(new WelcomeEmail('John', 'Doe', 'test@example.com', 'password123'));
@@ -202,3 +252,31 @@ Route::get('/test-email', function () {
         return 'Error: ' . $e->getMessage();
     }
 });
+
+Route::post('/geopolitcal-zones', function (Request $request) {
+    $zone = $request->all();
+    Zone::create($zone);
+    return response()->json(['message' => 'Zone created successfully', $zone]);
+});
+
+Route::post('/states', function (Request $request) {
+    $states = $request->all(); // Expecting an array of states
+
+    // Bulk insert
+    State::insert($states);
+
+    return response()->json([
+        'message' => 'States created successfully',
+        'data' => $states
+    ]);
+});
+
+Route::get('/states', function(){
+    $states = State::orderBy('stateName')->get();
+    return response()->json([
+        'states' => $states
+    ]);
+});
+
+Route::post('/send-whatsapp', [UserController::class, 'sendSMS']);
+// Route::post('/send-whatsapp', 'UserController@sendWhatsAppNotificationSMS');

@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id('clusterId');
             $table->unsignedBigInteger('subhubId');
             $table->unsignedBigInteger('hospitalId');
-            $table->string('clusterName');
-            $table->string('clusterCode');
-            $table->string('clusterType');
-            $table->string('status');
-            $table->unsignedBigInteger('stateId');
+            $table->string('clusterName')->nullable();
+            $table->string('clusterCode')->nullable();
+            $table->string('clusterType')->nullable();
+            $table->string('status')->nullable();
+            $table->unsignedBigInteger('stateId')->nullable();
         
 
             $table->foreign('subhubId')->references('subhubId')->on('subhubs');

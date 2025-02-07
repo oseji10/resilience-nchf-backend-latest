@@ -14,16 +14,17 @@ return new class extends Migration
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id('hospitalId');
             $table->string('hospitalName');
-            $table->text('address');
-            $table->string('phone');
-            $table->string('email');
-            $table->string('website');
-            $table->unsignedBigInteger('stateId');
-            $table->string('hospitalCode');
-            $table->string('hospitalType');
-            $table->unsignedBigInteger('hospitalAdmin');
-            $table->unsignedBigInteger('hospitalCMD');
-            $table->string('status');
+            $table->string('hospitalShortName');
+            $table->text('address')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('website')->nullable();
+            $table->unsignedBigInteger('stateId')->nullable();
+            $table->string('hospitalCode')->nullable();
+            $table->string('hospitalType')->nullable();
+            $table->unsignedBigInteger('hospitalAdmin')->nullable();
+            $table->unsignedBigInteger('hospitalCMD')->nullable();
+            $table->string('status')->nullable();
 
          
             $table->foreign('hospitalAdmin')->references('id')->on('users');

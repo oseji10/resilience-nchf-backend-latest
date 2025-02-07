@@ -11,7 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('role_permissions', function (Blueprint $table) {
+            $table->id('rolePermissionId');
+            $table->unsignedBigInteger('roleId');
+            $table->unsignedBigInteger('permissionId');
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('roleId')->references('roleId')->on('roles');
+            $table->foreign('permissionId')->references('permissionId')->on('permissions');
+        });
     }
 
     /**

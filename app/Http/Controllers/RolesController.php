@@ -13,6 +13,13 @@ class RolesController extends Controller
        
     }
 
+    public function hospitalRoles()
+    {
+        $roles = Roles::where('roleType', '=', 'HOSPITAL')->get();
+        return response()->json($roles);
+       
+    }
+
     public function store(Request $request)
     {
         // Directly get the data from the request

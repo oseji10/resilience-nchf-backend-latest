@@ -6,36 +6,47 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use App\Models\Users;
+use App\Models\User;
 use App\Models\Doctors;
 use App\Mail\WelcomeEmail;
+use Illuminate\Support\Str;
+
 class AuthController extends Controller
 {
    
 
+    // use Illuminate\Http\Request;
+    // use Illuminate\Support\Facades\Hash;
+    // use Illuminate\Validation\ValidationException;
+    // use App\Models\User;
+    
     public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    $user = Users::where('email', $request->email)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
+    {
+        $request->validate([
+            'username' => 'required', // Can be email or phone number
+            'password' => 'required',
+        ]);
+    
+        // Find user by email or phone number
+        $user = User::where('email', $request->username)
+                     ->orWhere('phoneNumber', $request->username)
+                     ->first();
+    
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'identifier' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+    
+        // Create a Sanctum token
+        $token = $user->createToken('auth-token')->plainTextToken;
+    
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
         ]);
     }
-
-    // Create a Sanctum token
-    $token = $user->createToken('auth-token')->plainTextToken;
-
-    return response()->json([
-        'user' => $user,
-        'token' => $token,
-    ]);
-}
+    
 
     // Logout
     public function logout(Request $request)
@@ -59,7 +70,7 @@ public function register(Request $request)
     $default_password = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
 
     // Create user
-    $user = Users::create([
+    $user = User::create([
         'firstName' => $request->firstName,
         'lastName' => $request->lastName,
         'phoneNumber' => $request->phoneNumber,
@@ -126,7 +137,7 @@ public function register(Request $request)
 public function updateProfile(Request $request)
 {
     // Find the patient by ID
-    $user = Users::where('email', $request->email)->first();
+    $user = User::where('email', $request->email)->first();
 
     
     if (!$user) {

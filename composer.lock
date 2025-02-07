@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c491b8531eec05ba41a11d9276a5749",
+    "content-hash": "ff5264cc514029b6172f2e1329069ffb",
     "packages": [
         {
             "name": "brick/math",
@@ -3181,6 +3181,66 @@
             "time": "2024-04-27T21:32:50+00:00"
         },
         {
+            "name": "spatie/laravel-package-tools",
+            "version": "1.18.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-package-tools.git",
+                "reference": "ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78",
+                "reference": "ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^9.28|^10.0|^11.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.5",
+                "orchestra/testbench": "^7.7|^8.0|^9.0",
+                "pestphp/pest": "^1.22|^2",
+                "phpunit/phpunit": "^9.5.24|^10.5",
+                "spatie/pest-plugin-test-time": "^1.1|^2.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelPackageTools\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Tools for creating Laravel packages",
+            "homepage": "https://github.com/spatie/laravel-package-tools",
+            "keywords": [
+                "laravel-package-tools",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-package-tools/issues",
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.18.3"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-01-22T08:51:18+00:00"
+        },
+        {
             "name": "symfony/console",
             "version": "v6.4.15",
             "source": {
@@ -5549,6 +5609,124 @@
                 }
             ],
             "time": "2024-11-21T01:49:47+00:00"
+        },
+        {
+            "name": "waapi/waapi-laravel-sdk",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/WaAPIapp/waapi-laravel-sdk.git",
+                "reference": "7a5a1376f557cd717ab3bbfc917f6d42036ec8be"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/WaAPIapp/waapi-laravel-sdk/zipball/7a5a1376f557cd717ab3bbfc917f6d42036ec8be",
+                "reference": "7a5a1376f557cd717ab3bbfc917f6d42036ec8be",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^10.0|^11.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.14.0",
+                "waapi/waapi-php-sdk": "^1.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.8",
+                "nunomaduro/larastan": "^2.0.1",
+                "orchestra/testbench": "^8.8",
+                "pestphp/pest": "^2.0",
+                "pestphp/pest-plugin-arch": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "WaAPI\\WaAPI\\WaAPIServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "WaAPI\\WaAPI\\": "src/",
+                    "WaAPI\\WaAPI\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "WaAPI",
+                    "email": "info@waapi.app",
+                    "role": "Developer"
+                }
+            ],
+            "description": "WaAPI Laravel Package",
+            "homepage": "https://github.com/WaAPIapp/waapi-laravel-sdk",
+            "keywords": [
+                "WaAPI",
+                "laravel",
+                "waapi-laravel-sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/WaAPIapp/waapi-laravel-sdk/issues",
+                "source": "https://github.com/WaAPIapp/waapi-laravel-sdk/tree/v1.1.0"
+            },
+            "time": "2024-09-02T04:26:20+00:00"
+        },
+        {
+            "name": "waapi/waapi-php-sdk",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/WaAPIapp/waapi-php-sdk.git",
+                "reference": "43bf7d8f6afdd032d90fe5168f33222464361aad"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/WaAPIapp/waapi-php-sdk/zipball/43bf7d8f6afdd032d90fe5168f33222464361aad",
+                "reference": "43bf7d8f6afdd032d90fe5168f33222464361aad",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^6.3.1|^7.5",
+                "php": "^7.2|^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.5",
+                "phpstan/phpstan": "^1.8",
+                "phpunit/phpunit": "^8.4|^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "WaAPI\\WaAPISdk\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "The official EAZE WhatsApp PHP SDK",
+            "keywords": [
+                "api",
+                "eaze",
+                "library",
+                "sdk",
+                "whatsapp"
+            ],
+            "support": {
+                "issues": "https://github.com/WaAPIapp/waapi-php-sdk/issues",
+                "source": "https://github.com/WaAPIapp/waapi-php-sdk/tree/v1.0.1"
+            },
+            "time": "2023-09-06T16:01:13+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -8124,12 +8302,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.1"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Consulting;
 use App\Models\Encounters;
-class ConsultingController extends Controller
+class PatientBiodataController extends Controller
 {
     public function RetrieveAll()
     {

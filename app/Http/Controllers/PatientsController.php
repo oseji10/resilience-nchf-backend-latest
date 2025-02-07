@@ -8,7 +8,7 @@ use App\Models\Doctors;
 use App\Models\HMOs;
 class PatientsController extends Controller
 {
-    public function RetrieveAll(Request $request)
+    public function NICRATRetrieveAll(Request $request)
     {
         $limit = $request->input('limit', 10);
         $searchQuery = $request->input('query');
@@ -37,7 +37,11 @@ class PatientsController extends Controller
     }
     
     
-    
+    public function RetrieveAll(Request $request){
+        $patients = Patients::all();
+        return $patients;
+
+    }
     
 
     public function retrieveAllPatients()

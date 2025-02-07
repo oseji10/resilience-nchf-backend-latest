@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('patients', function (Blueprint $table) {
             $table->id('patientId');
+            $table->string('NIN')->nullable();
             $table->unsignedBigInteger('userId')->nullable();
             $table->string('chfId')->nullable()->unique();
             $table->string('hospitalFileNumber')->nullable();
@@ -36,7 +37,7 @@ return new class extends Migration
             $table->string('nextOfKinOccupation')->nullable();
             $table->string('nextOfKinGender')->nullable();
             $table->unsignedBigInteger('hmoId')->nullable();
-            
+            $table->unsignedBigInteger('cancerType')->nullable();
             $table->unsignedBigInteger('doctor')->nullable();
             $table->enum('status', ['active', 'disabled', 'deceased', 'cured'])->default('active')->nullable();
             $table->timestamps();
@@ -50,6 +51,7 @@ return new class extends Migration
             $table->foreign('lgaOfOrigin')->references('lgaId')->on('lgas')->onDelete('cascade');
             $table->foreign('userId')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('hmoId')->references('hmoId')->on('hmos')->onDelete('cascade');
+            $table->foreign('cancerType')->references('cancerId')->on('cancers');
         });
     }
 

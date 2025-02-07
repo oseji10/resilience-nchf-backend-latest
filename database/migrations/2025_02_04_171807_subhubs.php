@@ -13,13 +13,13 @@ return new class extends Migration
     {
        Schema::create('subhubs', function (Blueprint $table) {
             $table->id('subhubId');
-            $table->unsignedBigInteger('hubId');
-            $table->unsignedBigInteger('hospitalId');
-            $table->string('subhubName');
-            $table->string('subhubType');
-            $table->string('subhubCode');
-            $table->string('status');
-            $table->unsignedBigInteger('stateId');
+            $table->unsignedBigInteger('hubId')->nullable();
+            $table->unsignedBigInteger('hospitalId')->nullable();
+            $table->string('subhubName')->nullable();
+            $table->string('subhubType')->nullable();
+            $table->string('subhubCode')->nullable();
+            $table->string('status')->nullable();
+            $table->unsignedBigInteger('stateId')->nullable();
 
             $table->foreign('hubId')->references('hubId')->on('hubs');
             $table->foreign('stateId')->references('stateId')->on('states');

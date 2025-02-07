@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('hubs', function (Blueprint $table) {
             $table->id('hubId');
             $table->unsignedBigInteger('hospitalId');
-            $table->string('hubName');
-            $table->string('hubCode');
-            $table->string('hubType');
-            $table->string('status');
-            $table->unsignedBigInteger('stateId');
+            $table->string('hubName')->nullable();
+            $table->string('hubCode')->nullable();
+            $table->string('hubType')->nullable();
+            $table->string('status')->nullable();
+            $table->unsignedBigInteger('stateId')->nullable();
             
             $table->foreign('stateId')->references('stateId')->on('states');
             $table->timestamps();

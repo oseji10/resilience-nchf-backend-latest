@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->id('permissionId');
+            $table->string('permissionName')->nullable();
+            $table->string('permissionSlug')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
     }
 
     /**
