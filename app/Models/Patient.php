@@ -49,7 +49,7 @@ class Patient extends Model
 
     public function doctor()
     {
-        return $this->belongsTo(Doctors::class, 'doctor', 'doctorId'); 
+        return $this->hasOne(User::class, 'id', 'doctor'); 
     }
 
     public function hmo()

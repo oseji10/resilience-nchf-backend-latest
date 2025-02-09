@@ -17,10 +17,10 @@ return new class extends Migration
         // });
         
 
-        Schema::table('patients', function (Blueprint $table) {
-            $table->unsignedBigInteger('doctorId')->nullable();
-            $table->foreign('doctorId')->references('id')->on('users')->onDelete('cascade');
-        });
+        // Schema::table('patients', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('doctorId')->nullable();
+        //     $table->foreign('doctorId')->references('id')->on('users')->onDelete('cascade');
+        // });
 
     }
 

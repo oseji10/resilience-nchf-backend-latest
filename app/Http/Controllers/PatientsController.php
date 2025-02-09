@@ -8,6 +8,8 @@ use App\Models\Doctors;
 use App\Models\HMOs;
 use App\Models\User;
 use App\Models\HospitalStaff;
+use App\Models\DoctorAssessment;
+use App\Models\ApplicationReview;
 use Illuminate\Support\Facades\Auth;
 
 class PatientsController extends Controller
@@ -67,6 +69,7 @@ class PatientsController extends Controller
         $query->where('role', 1); // Ensure user has roleId = 1
     })
     ->with([
+        'doctor',
         'user',
         'cancer',
         'status.status_details' => function ($query) {
@@ -156,7 +159,7 @@ class PatientsController extends Controller
     }
 
     // Get the data from the request
-    $data['doctorId'] = $request->doctorId;
+    $data['doctor'] = $request->doctorId;
 
     // Update the patient record
     $patient->update($data);
@@ -167,6 +170,49 @@ class PatientsController extends Controller
         'data' => $patient,
     ], 200); // HTTP status code 200: OK
 }
+
+
+
+public function doctorcarePlan(Request $request)
+{
+    // Validate the request
+    $request->validate([
+        'patientId' => 'required',
+        // 'reviewerId' => 'required',
+        'carePlan' => 'required|string',
+        'amountRecommended' => 'required|numeric',
+        'status' => 'nullable', // Ensure it's either approved or disapproved
+    ]);
+
+    // Find the patient by ID
+    $patient = Patient::findOrFail($request->patientId);
+
+    // Prepare data for update
+    $data = [
+        'patientUserId' => $patient->userId,
+        'reviewerId' => Auth::id(),
+        'carePlan' => $request->carePlan,
+        'amountRecommended' => $request->amountRecommended,
+        'status' => $request->status, // Set approved or disapproved
+    ];
+
+    // Update patient record
+    // $patient->update($data);
+    DoctorAssessment::firstOrCreate($data);
+
+    $status_data['patientUserId'] = $patient->userId;
+        $status_data['reviewerId'] = Auth::id();
+        $status_data['reviewerRole'] = 2;
+        $status_data['statusId'] = 3;
+
+        $application_status = ApplicationReview::create($status_data);
+    // Return response based on status
+    return response()->json([
+        'message' => $request->status === 'approved' ? 'Care plan approved successfully' : 'Care plan disapproved',
+        'data' => $patient,
+    ], 200);
+}
+
 
 // Delete Patient
 public function deletePatient($patientId){

@@ -42,7 +42,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('doctor')->references('doctorId')->on('doctors')->onDelete('cascade');
+            $table->foreign('doctor')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('hospital')->references('hospitalId')->on('hospitals')->onDelete('cascade');
             $table->foreign('stateOfOrigin')->references('stateId')->on('states')->onDelete('cascade');
            
