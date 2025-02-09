@@ -261,8 +261,8 @@ public function createHospitalAdmin(Request $request)
         Mail::to($email)->send(new AdminWelcomeEmail($email, $firstName, $lastName, $hospitalName, $roleName, $defaultPassword));
 
         // // Send SMS with the role and hospital names
-        // $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
-        // $this->sendSMS($phone, $smsMessage);
+        $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
+        $this->sendSMS($phone, $smsMessage);
 
         return response()->json([
             'success' => true,
@@ -324,8 +324,8 @@ public function createCMD(Request $request)
         Mail::to($email)->send(new AdminWelcomeEmail($email, $firstName, $lastName, $hospitalName, $roleName, $defaultPassword));
 
         // // Send SMS with the role and hospital names
-        // $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
-        // $this->sendSMS($phone, $smsMessage);
+        $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
+        $this->sendSMS($phone, $smsMessage);
 
         return response()->json([
             'success' => true,
