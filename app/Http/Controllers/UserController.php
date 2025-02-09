@@ -16,6 +16,8 @@ use GuzzleHttp\Client;
 use App\Models\Hospital;
 use App\Models\HospitalStaff;
 use App\Models\Roles;
+use App\Models\ApplicationReview;
+use App\Models\StatusList;
 // use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -259,8 +261,8 @@ public function createHospitalAdmin(Request $request)
         Mail::to($email)->send(new AdminWelcomeEmail($email, $firstName, $lastName, $hospitalName, $roleName, $defaultPassword));
 
         // // Send SMS with the role and hospital names
-        $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
-        $this->sendSMS($phone, $smsMessage);
+        // $smsMessage = "Hello $firstName, You have just been added as an $roleName at $hospitalShortName. Your temporary password is: $defaultPassword.";
+        // $this->sendSMS($phone, $smsMessage);
 
         return response()->json([
             'success' => true,
@@ -341,8 +343,8 @@ public function createCMD(Request $request)
     }
 }
 
- 
-    public function store(Request $request)
+//  Patient Application Signup
+    public function patientSignUp(Request $request)
 {
     try {
         // Generate a random password
@@ -356,13 +358,49 @@ public function createCMD(Request $request)
         $email = $request->email;
         $phone = $request->phoneNumber; // User's phone number
 
+        // Get list of statuses
+        $statusId = StatusList::orderBy('statusId')->value('statusId');
+
         // Create user
         $user = User::create($data);
 
+        $status_data['patientUserId'] = $user->id;
+        $status_data['reviewerId'] = $user->id;
+        $status_data['reviewerRole'] = 1;
+        $status_data['statusId'] = $statusId;
+
+        $application_status = ApplicationReview::create($status_data);
+
         // Send welcome email
-        Mail::to($email)->send(new WelcomeEmail($email, $firstName, $lastName, $defaultPassword));
-        $smsMessage = "Hello $firstName, thanks for registering on NCHF! Your temporary password is: $defaultPassword.";
-        $this->sendSMS($phone, $smsMessage);
+        $languageId = $request->languageId; // Get the selected language ID
+        Mail::to($email)->send(new WelcomeEmail($email, $firstName, $lastName, $defaultPassword, $languageId));
+        
+
+// Define the messages with numeric keys
+
+
+// $languageId = $request->languageId;
+
+if ($languageId == 1) {
+    $smsMessage = "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."; // English
+} elseif ($languageId == 2) {
+    $smsMessage = "Salam $firstName, gode muke da yin rijista a Cancer Health Fund! Kalmar sirri ta wucin gadi ita ce: $defaultPassword."; // Hausa
+} elseif ($languageId == 3) {
+    $smsMessage = "Salaamu ale $firstName, ope wa fun iforukosile re lori Cancer Health Fund! Oro asina igba die re ni: $defaultPassword."; // Yoruba
+} elseif ($languageId == 4) {
+    $smsMessage = "Ndewo $firstName, daalu maka ndebanye aha gi na Cancer Health Fund! Okwuntughe nwa oge gi bu: $defaultPassword."; // Igbo
+} else {
+    $smsMessage = "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."; // Default to English
+}
+
+// Send the SMS
+$this->sendSMS($phone, $smsMessage);
+
+// Send the SMS
+// $this->sendSMS($phone, $smsMessage);
+
+        // $smsMessage = "Hello $firstName, thanks for registering on NCHF! Your temporary password is: $defaultPassword.";
+        // $this->sendSMS($phone, $smsMessage);
         // Send WhatsApp message
         // $this->sendWhatsAppNotification($phone, $firstName, $defaultPassword);
 

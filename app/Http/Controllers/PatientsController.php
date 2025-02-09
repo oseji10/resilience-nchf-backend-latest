@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Patients;
+use App\Models\Patient;
 use App\Models\Doctors;
 use App\Models\HMOs;
+use App\Models\User;
+use App\Models\HospitalStaff;
+use Illuminate\Support\Facades\Auth;
+
 class PatientsController extends Controller
 {
     public function NICRATRetrieveAll(Request $request)
@@ -38,10 +42,69 @@ class PatientsController extends Controller
     
     
     public function RetrieveAll(Request $request){
-        $patients = Patients::all();
+        $patients = Patient::all();
         return $patients;
 
     }
+
+
+    public function hospitalPatients(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        // Retrieve patients who belong to the same hospital and have users with roleId = 1
+        $patients = Patient::where('hospital', $hospitalId)
+    ->whereHas('user', function ($query) {
+        $query->where('role', 1); // Ensure user has roleId = 1
+    })
+    ->with([
+        'user',
+        'cancer',
+        'status.status_details' => function ($query) {
+            $query->latest()->limit(1); // Get only the latest status detail
+        }
+    ])
+    ->get();
+
+    
+        return response()->json($patients);
+    }
+
+
+
+    public function hospitalDoctors(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+
+        // Retrieve doctors who belong to the same hospital
+        $doctors = User::where('role', 2)
+            ->whereHas('hospital_admins', function ($query) use ($hospitalId) { // Pass hospitalId into closure
+                $query->where('hospitalId', $hospitalId);
+            })
+            ->get();
+        
+    
+        return response()->json($doctors);
+    }
+    
     
 
     public function retrieveAllPatients()
@@ -57,7 +120,7 @@ class PatientsController extends Controller
     public function searchPatient(Request $request)
     {
         $query = $request->query('queryParameter'); // Retrieve query parameter
-        $patients = Patients::where('hospitalFileNumber', '=', "$query")
+        $patients = Patient::where('hospitalFileNumber', '=', "$query")
             ->orWhere('phoneNumber', '=', "$query")
             ->orWhere('email', '=', "$query")
             ->orWhere('patientId', '=', "$query")
@@ -80,10 +143,10 @@ class PatientsController extends Controller
     }
 
 
-    public function update(Request $request, $patientId)
+    public function assignDoctor(Request $request)
 {
     // Find the patient by ID
-    $patient = Patients::find($patientId);
+    $patient = Patient::find($request->patientId);
 
     // If the patient doesn't exist, return an error response
     if (!$patient) {
@@ -93,7 +156,7 @@ class PatientsController extends Controller
     }
 
     // Get the data from the request
-    $data = $request->all();
+    $data['doctorId'] = $request->doctorId;
 
     // Update the patient record
     $patient->update($data);

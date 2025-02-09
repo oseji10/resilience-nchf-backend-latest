@@ -3,44 +3,133 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Consulting;
-use App\Models\Encounters;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Hospital;
+use App\Models\Patient;
+use App\Models\User;
+use App\Models\ApplicationReview;
+use App\Models\StatusList;
+use App\Models\PersonalHistory;
+use App\Models\FamilyHistory;
+use App\Models\SocialCondition;
+
 class PatientBiodataController extends Controller
 {
-    public function RetrieveAll()
+    public function retrievePatient($phoneNumber)
     {
-        $consulting = Consulting::with('encounters', 'patients')->get();
-        return response()->json($consulting); 
+        $user = User::where('phoneNumber', $phoneNumber)->first();
+        $patient = Patient::with('hospital', 'stateOfOrigin')->where('userId', $user->id)->first();
+        return response()->json($patient); 
        
     }
 
+    public function currentStatus($phoneNumber)
+    {
+        $user = User::where('phoneNumber', $phoneNumber)->first();
+        $current_status = ApplicationReview::where('patientUserId', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->pluck('statusId')
+        ->first();
+        
+        return response()->json($current_status); 
+       
+    }
+
+
     public function store(Request $request)
     {
-        // Retrieve all data from the request
+        // Validate request data
         $data = $request->all();
     
-        // Validate incoming request data (optional but recommended)
-        // $validated = $request->validate([
-        //     'patientId' => 'required|integer', // Example fields, adjust based on your schema
-        //     'details' => 'nullable|string',    // Example field for consulting
-        // ]);
+        // Retrieve hospital data
+        $hospital = Hospital::findOrFail($data['hospital']); // Safe fetch
+        $uniqueID = substr(md5(uniqid()), 0, 10);
     
-        // Create a new consulting record
-        $consulting = Consulting::create($data);
+        $statusId = StatusList::orderBy('statusId')->skip(1)->value('statusId');
+
+        // Prepare additional fields
+        $data['userId'] = Auth::id();
+        $data['chfId'] = "CHF-{$hospital->hospitalShortName}-$uniqueID";
+        // $data['status'] = $statusId;
+        
+        // Use `firstOrCreate` to prevent duplicate records
+        $patient = Patient::firstOrCreate(
+            ['userId' => Auth::id()], // Check condition (unique constraint)
+            $data // Insert only if it doesn’t exist
+        );
+
+
+         // Create Patient History
+    $patientHistoryData = [
+        'patientUserId'         => Auth::id(),
+        'averageMonthlyIncome' => $data['averageMonthlyIncome'] ?? null,
+        'averageFeedingDaily'   => $data['averageFeedingDaily'] ?? null,
+        'whoProvidesFeeding'    => $data['whoProvidesFeeding'] ?? null,
+        'accomodation'          => $data['accomodation'] ?? null,
+        'typeOfAccomodation'    => $data['typeOfAccomodation'] ?? null,
+        'noOfGoodSetOfClothes'  => $data['noOfGoodSetOfClothes'] ?? null,
+        'howAreClothesGotten'   => $data['howAreClothesGotten'] ?? null,
+        'whyDidYouChooseHospital' => $data['whyDidYouChooseHospital'] ?? null,
+        'hospitalReceivingCare' => $data['hospitalReceivingCare'] ?? null,
+        'levelOfSpousalSpupport' => $data['levelOfSpousalSpupport'] ?? null,
+        'otherSupport'          => $data['otherSupport'] ?? null,
+        
+    ];
+
+    $patientHistory = PersonalHistory::firstOrCreate(['patientUserId' => Auth::id()], // Check condition (unique constraint)
+    $patientHistoryData);
+
+ // Store Family History
+ $familyData = [
+    'patientUserId'           => Auth::id(),
+    'familySetupSize'         => $data['familySetupSize'] ?? null,
+    'birthOrder'              => $data['birthOrder'] ?? null,
+    'fathersEducationalLevel' => $data['fathersEducationalLevel'] ?? null,
+    'mothersEducationalLevel' => $data['mothersEducationalLevel'] ?? null,
+    'fathersOccupation'       => $data['fathersOccupation'] ?? null,
+    'mothersOccupation'       => $data['mothersOccupation'] ?? null,
+    'levelOfFamilyCare'       => $data['levelOfFamilyCare'] ?? null,
+    'familyMonthlyIncome'     => $data['familyMonthlyIncome'] ?? null,
+];
+
+$familyHistory = FamilyHistory::firstOrCreate(
+    ['patientUserId' => Auth::id()],  // Prevent duplicate records
+    $familyData
+);
     
-        // Create a new encounter record and link the consultingId
-        $encounter = Encounters::create([
-            'patientId' => $request->patientId,
-            'consultingId' => $consulting->consultingId, // Link the consultingId
-        ]);
+
+
+    // Store Living Conditions
+    $livingConditionData = [
+        'patientUserId'     => Auth::id(),
+        'runningWater'      => $data['runningWater'] ?? null,
+        'toiletType'        => $data['toiletType'] ?? null,
+        'powerSupply'       => $data['powerSupply'] ?? null,
+        'meansOfTransport'  => $data['meansOfTransport'] ?? null,
+        'mobilePhone'       => $data['mobilePhone'] ?? null,
+        'howPhoneIsRecharged' => $data['howPhoneIsRecharged'] ?? null,
+    ];
+
+    $livingCondition = SocialCondition::firstOrCreate(
+        ['patientUserId' => Auth::id()],  // Prevent duplicate records
+        $livingConditionData
+    );
+        $status_data['patientUserId'] = Auth::id();
+        $status_data['reviewerId'] = Auth::id();
+        $status_data['reviewerRole'] = 1;
+        $status_data['statusId'] = $statusId;
+
+        $application_status = ApplicationReview::firstOrCreate(['patientUserId' => Auth::id()], // Check condition (unique constraint)
+        $status_data);
+
+
+        // Check if the record already existed
+        if (!$patient->wasRecentlyCreated) {
+            return response()->json(['error' => 'You have already started an application'], 409);
+        }
     
-        // Update the consulting record with the encounterId
-        $consulting->update([
-            'encounterId' => $encounter->encounterId, // Link the encounterId
-        ]);
-    
-        // Return the newly created encounter and consulting as JSON response
-        return response()->json(['encounterId' =>$encounter->encounterId], 201);// HTTP status code 201: Created
+        return response()->json($patient, 201); // 201: Created
     }
+    
     
 }

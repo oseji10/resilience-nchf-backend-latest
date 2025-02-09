@@ -30,7 +30,7 @@ class AuthController extends Controller
         // Find user by email or phone number
         $user = User::where('email', $request->username)
                      ->orWhere('phoneNumber', $request->username)
-                     ->first();
+                     ->first()->makeHidden(['password']);
     
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([

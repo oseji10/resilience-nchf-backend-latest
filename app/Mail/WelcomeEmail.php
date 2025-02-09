@@ -15,12 +15,13 @@ class WelcomeEmail extends Mailable
      *
      * @return void
      */
-    public function __construct($email, $firstName, $lastName, $defaultPassword)
+    public function __construct($email, $firstName, $lastName, $defaultPassword, $languageId)
     {
         $this->email = $email;
         $this->firstName = $firstName;
         $this->lastName = $lastName;
         $this->defaultPassword = $defaultPassword;
+        $this->languageId = $languageId;
 
     }
 
@@ -39,6 +40,7 @@ class WelcomeEmail extends Mailable
                         'lastName' => $this->lastName,
                         
                         'defaultPassword' => $this->defaultPassword,
+                        'languageId' => $this->languageId,
                         'action_url' => "https://nchf.resilience.ng/login",
                         'login_url' => "https://nchf.resilience.ng/login",
                         

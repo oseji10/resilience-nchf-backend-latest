@@ -437,7 +437,6 @@
   <![endif]-->
   </head>
   <body>
-    <!-- <span class="preheader">Thanks for registering on iLearn Africa. We’ve pulled together some information and resources to help you get started.</span> -->
     <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
       <tr>
         <td align="center">
@@ -457,47 +456,70 @@
                   <tr>
                     <td class="content-cell">
                       <div class="f-fallback">
-                        <h1>Hi, {{$firstName}}!</h1>
-                        <p>You recently registered on the NCHF Portal. Please see login details below:</p>
+
+                        @if ($languageId == 1) 
+                          {{-- English --}}
+                          <h1>Hi, {{$firstName}}!</h1>
+                          <p>You recently registered on the NCHF Portal. Please see login details below:</p>
+                        @elseif ($languageId == 2)
+                          {{-- Yoruba --}}
+                          <h1>Bawo ni, {{$firstName}}!</h1>
+                          <p>O ṣẹṣẹ forukọsilẹ lori NCHF Portal. Jọwọ wo awọn alaye wiwọle rẹ ni isalẹ:</p>
+                        @elseif ($languageId == 3)
+                          {{-- Hausa --}}
+                          <h1>Sannu, {{$firstName}}!</h1>
+                          <p>Kwanan nan ka yi rijista a NCHF Portal. Da fatan a duba bayanan shiga a ƙasa:</p>
+                        @elseif ($languageId == 4)
+                          {{-- Igbo --}}
+                          <h1>Ndewo, {{$firstName}}!</h1>
+                          <p>Ị nọrọ na ndebanye aha na NCHF Portal. Biko lee nkọwa nbanye gị n'okpuru:</p>
+                        @endif
+
                         <!-- Action -->
                         <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                           <tr>
                             <td align="center">
-                              <!-- Border based button
-           https://litmus.com/blog/a-guide-to-bulletproof-buttons-in-email-design -->
                               <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                   <td align="center">
                                     Email: {{$email}}<br>
                                     Password: {{$defaultPassword}}<br>
-                                    
                                   </td>
                                 </tr>
                               </table>
                             </td>
                           </tr>
                         </table>
-                        <p>Kindly change your password as soon as possible</p>
+
+                        @if ($languageId == 1) 
+                          <p>Kindly change your password as soon as possible.</p>
+                        @elseif ($languageId == 2)
+                          <p>Jọwọ yi ọrọ aṣina rẹ pada ni kete bi o ti ṣee.</p>
+                        @elseif ($languageId == 3)
+                          <p>Da fatan za a canza kalmar sirri da wuri-wuri.</p>
+                        @elseif ($languageId == 4)
+                          <p>Biko gbanwee okwuntughe gị ozugbo enwere ike.</p>
+                        @endif
                         
-                        <p>Thanks,
-                          <br>NCHF IT Team</p>
-                        
-                        <!-- Sub copy -->
-                       
+                        @if ($languageId == 1)
+                          <p>Thanks,<br>NCHF IT Team</p>
+                        @elseif ($languageId == 2)
+                          <p>O ṣeun,<br>Ẹgbẹ IT NCHF</p>
+                        @elseif ($languageId == 3)
+                          <p>Godiya daga,<br>NCHF IT Team</p>
+                        @elseif ($languageId == 4)
+                          <p>Daalụ,<br>NCHF IT Team</p>
+                        @endif
+
                       </div>
                     </td>
                   </tr>
                 </table>
               </td>
             </tr>
-            <tr>
-              <td>
-                
-              </td>
-            </tr>
           </table>
         </td>
       </tr>
     </table>
-  </body>
+</body>
 </html>

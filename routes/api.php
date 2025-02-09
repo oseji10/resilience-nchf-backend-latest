@@ -2,23 +2,11 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\VisualAcuityFarController;
-use App\Http\Controllers\VisualAcuityNearController;
-use App\Http\Controllers\RefractionAxisController;
-use App\Http\Controllers\RefractionSphereController;
-use App\Http\Controllers\RefractionCylinderController;
-use App\Http\Controllers\RefractionPrismController;
-use App\Http\Controllers\ChiefComplaintController;
-use App\Http\Controllers\DiagnosisListController;
+
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DoctorsController;
 use App\Http\Controllers\PatientsController;
-use App\Http\Controllers\ConsultingController;
-use App\Http\Controllers\ContinueConsultingController;
-use App\Http\Controllers\EncountersController;
-use App\Http\Controllers\RefractionController;
-use App\Http\Controllers\DiagnosisController;
-use App\Http\Controllers\RolesController;
+use App\Http\Controllers\PatientBiodataController;
 use App\Http\Controllers\MedicinesController;
 use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\SketchController;
@@ -31,12 +19,16 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PermissionsController;
 use App\Models\Zone;
 use App\Models\State;
+use App\Models\HMOs;
+use App\Models\StatusList;
+use App\Models\Languages;
 use App\Http\Controllers\HospitalController;
 use App\Models\Cancer;
 use App\Mail\WelcomeEmail;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController; 
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+use App\Http\Controllers\RolesController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -91,15 +83,15 @@ Route::put('/patient/{patientId}', [PatientsController::class, 'update']);
 Route::delete('/patient/{patientId}', [PatientsController::class, 'deletePatient']);
 
 
-Route::get('/users', [UserController::class, 'retrieveAll']);
-Route::post('/users', [UserController::class, 'store']);
-Route::get('/users/doctors', [UserController::class, 'doctors']);
-Route::get('/users/nurses', [UserController::class, 'nurses']);
-Route::get('/users/clinic_receptionists', [UserController::class, 'clinic_receptionists']);
-Route::get('/users/workshop_receptionists', [UserController::class, 'workshop_receptionists']);
-Route::get('/users/front_desks', [UserController::class, 'front_desk']);
-Route::delete('/user/{id}', [UserController::class, 'deleteUser']);
-Route::put('/user/{id}', [UserController::class, 'updateUser']);
+// Route::get('/users', [UserController::class, 'retrieveAll']);
+Route::post('/sign-up', [UserController::class, 'patientSignUp']);
+// Route::get('/users/doctors', [UserController::class, 'doctors']);
+// Route::get('/users/nurses', [UserController::class, 'nurses']);
+// Route::get('/users/clinic_receptionists', [UserController::class, 'clinic_receptionists']);
+// Route::get('/users/workshop_receptionists', [UserController::class, 'workshop_receptionists']);
+// Route::get('/users/front_desks', [UserController::class, 'front_desk']);
+// Route::delete('/user/{id}', [UserController::class, 'deleteUser']);
+// Route::put('/user/{id}', [UserController::class, 'updateUser']);
 
 
 
@@ -125,6 +117,9 @@ Route::delete('/manufacturers/{manufacturerId}', [ManufacturersController::class
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patients', [PatientsController::class, 'retrieveAll']);
+    Route::get('/hospital/patients', [PatientsController::class, 'hospitalPatients']);
+    Route::get('/hospital/doctors', [PatientsController::class, 'hospitalDoctors']);
+    Route::post('/patient/doctor/assign', [PatientsController::class, 'assignDoctor']);
     
     Route::post('/states', function (Request $request) {
         $states = $request->all(); // Expecting an array of states
@@ -198,12 +193,42 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::post('/cmds', [UserController::class, 'createCMD']);
     Route::get('/cmds', [UserController::class, 'cmds']);
+
+    Route::post('/patients/biodata', [PatientBiodataController::class, 'store']);
+    Route::get('/patients/biodata/{phoneNumber}', [PatientBiodataController::class, 'retrievePatient']);
+    Route::get('patient/{phoneNumber}/status', [PatientBiodataController::class, 'currentStatus']);
+    
+    Route::post('/doctor-assessment', [DoctorAssessmentController::class, 'RetrieveAll']);
+    Route::get('/doctor-assessment', [DoctorAssessmentController::class, 'store']);
+
+    Route::post('/cmd-assessment', [CMDAssessmentController::class, 'RetrieveAll']);
+    Route::get('/cmd-assessment', [CMDAssessmentController::class, 'store']);
+
+    Route::post('/mdt-assessment', [MDTAssessmentController::class, 'RetrieveAll']);
+    Route::get('/mdt-assessment', [MDTAssessmentController::class, 'store']);
+
+    Route::post('/nicrat-assessment', [NICRATAssessmentController::class, 'RetrieveAll']);
+    Route::get('/nicrat-assessment', [NICRATAssessmentController::class, 'store']);
+
+    Route::post('/social-welfare-assessment', [SocialWelfareAssessmentController::class, 'RetrieveAll']);
+    Route::get('/social-welfare-assessment', [SocialWelfareAssessmentController::class, 'store']);
+
+    Route::post('/personal-history', [PersonalHistoryController::class, 'RetrieveAll']);
+    Route::get('/personal-history', [PersonalHistoryController::class, 'store']);
+
+    Route::post('/family-history', [FamilyHistoryController::class, 'RetrieveAll']);
+    Route::get('/family-history', [FamilyHistoryController::class, 'store']);
+
+    Route::post('/social-condition', [SocialCondtionController::class, 'RetrieveAll']);
+    Route::get('/social-condition', [SocialCondtionController::class, 'store']);
+
     
 });
 
 Route::get('/roles', [RolesController::class, 'retrieveAll']);
 Route::get('/roles/hospital', [RolesController::class, 'hospitalRoles']);
 Route::post('/roles', [RolesController::class, 'store']);
+
 
 
 Route::get('/user-permissions', [PermissionsController::class, 'getUserPermissions']);
@@ -294,6 +319,58 @@ Route::post('/cancers', function (Request $request) {
 });
 
 
+Route::post('/hmos', function (Request $request) {
+    $hmos = $request->all(); // Expecting an array of states
+
+    // Bulk insert
+    HMOs::insert($hmos);
+
+    return response()->json([
+        'message' => 'HMOs created successfully',
+        'data' => $hmos
+    ]);
+});
+
+Route::get('/hmos', function(){
+    $hmos = HMOs::orderBy('hmoName')->get();
+    return response()->json($hmos);
+});
+
+
+Route::post('/status_list', function (Request $request) {
+    $status_list = $request->all(); // Expecting an array of states
+
+    // Bulk insert
+    StatusList::insert($status_list);
+
+    return response()->json([
+        'message' => 'Status created successfully',
+        'data' => $status_list
+    ]);
+});
+
+Route::get('/status_list', function(){
+    $status_list = StatusList::orderBy('statusId')->get();
+    return response()->json($status_list);
+});
+
+
+Route::post('/languages', function (Request $request) {
+    $languages = $request->all(); // Expecting an array of states
+
+    // Bulk insert
+    Languages::insert($languages);
+
+    return response()->json([
+        'message' => 'Languages created successfully',
+        'data' => $languages
+    ]);
+});
+
+Route::get('/languages', function(){
+    $languages = Languages::orderBy('languageId')->get();
+    return response()->json($languages);
+});
 
 Route::post('/send-whatsapp', [UserController::class, 'sendSMS']);
 // Route::post('/send-whatsapp', 'UserController@sendWhatsAppNotificationSMS');
