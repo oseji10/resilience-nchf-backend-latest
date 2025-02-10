@@ -152,7 +152,12 @@ class PatientsController extends Controller
         'doctor',
         'user',
         'cancer',
-        'status.status_details' 
+        'status.status_details',
+        'doctor_assessment',
+        'social_welfare_assessment' ,
+        'mdt_assessment',
+        'cmd_assessment',
+        'nicrat_assessment'
         
     ])
     ->orderBy('updated_at', 'desc')
@@ -191,6 +196,41 @@ class PatientsController extends Controller
         'user',
         'cancer',
         'status.status_details' 
+    ])
+    ->orderBy('updated_at', 'desc')
+    ->get();
+
+    
+        return response()->json($patients);
+    }
+
+
+
+    public function socialWelfarePatients(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        // Retrieve patients who belong to the same hospital and have users with roleId = 1
+        $patients = Patient::where('hospital', $hospitalId)
+        ->where('status', 3)
+    ->whereHas('user', function ($query) {
+        $query->where('role', 1); // Ensure user has roleId = 1
+    })
+    ->with([
+        'doctor',
+        'user',
+        'cancer',
+        'status.status_details',
+        'social_welfare_assessment' ,
     ])
     ->orderBy('updated_at', 'desc')
     ->get();

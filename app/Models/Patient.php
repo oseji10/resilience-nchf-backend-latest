@@ -86,23 +86,23 @@ class Patient extends Model
     }
     
     public function doctor_assessment(){
-        return $this->hasOne(DoctorAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+        return $this->hasOne(DoctorAssessment::class, 'patientUserId', 'userId')->latest('assessmentId');
     }
 
     public function social_welfare_assessment(){
-        return $this->hasOne(SocialWelfareAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+        return $this->hasOne(SocialWelfareAssessment::class, 'patientUserId', 'userId')->latest('assessmentId');
     }
 
     public function mdt_assessment(){
-        return $this->hasOne(MDTAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+        return $this->hasOne(MDTAssessment::class, 'patientUserId', 'userId')->latest('assessmentId');
     }
 
     public function cmd_assessment(){
-        return $this->hasOne(CMDAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+        return $this->hasOne(CMDAssessment::class, 'patientUserId', 'userId')->latest('assessmentId');
     }
 
 
     public function nicrat_assessment(){
-        return $this->hasOne(NICRATAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+        return $this->hasOne(NICRATAssessment::class, 'patientUserId', 'userId')->latest('assessmentId');
     }
 }

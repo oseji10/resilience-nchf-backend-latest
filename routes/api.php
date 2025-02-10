@@ -125,6 +125,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient/doctor/reviewed', [PatientsController::class, 'doctorReviewedPatients']);
     Route::get('/patient/doctor/pending', [PatientsController::class, 'doctorPendingPatients']);
     
+    Route::get('/patient/social-welfare/all', [PatientsController::class, 'socialWelfarePatients']);
     
     Route::post('/states', function (Request $request) {
         $states = $request->all(); // Expecting an array of states
