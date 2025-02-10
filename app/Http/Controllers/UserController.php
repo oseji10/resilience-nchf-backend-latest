@@ -21,6 +21,9 @@ use App\Models\StatusList;
 // use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
+use Illuminate\Support\Facades\Queue;
+use App\Jobs\SendSMSJob;
+
 
 
 class UserController extends Controller
@@ -344,14 +347,30 @@ public function createCMD(Request $request)
 }
 
 //  Patient Application Signup
-    public function patientSignUp(Request $request)
+public function patientSignUp(Request $request)
 {
     try {
+        // Check if email or phone number already exists
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email already exists. Please use a different email.'
+            ], 400);
+        }
+
+        if (User::where('phoneNumber', $request->phoneNumber)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number already exists. Please use a different phone number.'
+            ], 400);
+        }
+
         // Generate a random password
         $defaultPassword = strtoupper(Str::random(8)); 
         $data = $request->all();
         $data['password'] = Hash::make($defaultPassword);
         $data['role'] = 1; // Default role is patient
+
         // Extract user details
         $firstName = $request->firstName;
         $lastName = $request->lastName;
@@ -364,49 +383,34 @@ public function createCMD(Request $request)
         // Create user
         $user = User::create($data);
 
-        $status_data['patientUserId'] = $user->id;
-        $status_data['reviewerId'] = $user->id;
-        $status_data['reviewerRole'] = 1;
-        $status_data['statusId'] = $statusId;
+        // Store application status
+        $status_data = [
+            'patientUserId' => $user->id,
+            'reviewerId' => $user->id,
+            'reviewerRole' => 1,
+            'statusId' => $statusId
+        ];
+        ApplicationReview::create($status_data);
 
-        $application_status = ApplicationReview::create($status_data);
+        // Queue the welcome email
+        $languageId = $request->languageId;
+        Mail::to($email)->queue(new WelcomeEmail($email, $firstName, $lastName, $defaultPassword, $languageId));
 
-        // Send welcome email
-        $languageId = $request->languageId; // Get the selected language ID
-        Mail::to($email)->send(new WelcomeEmail($email, $firstName, $lastName, $defaultPassword, $languageId));
-        
+        // Prepare SMS message based on language
+        $smsMessage = match ($languageId) {
+            1 => "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword.", // English
+            3 => "Salam $firstName, godiya muke da yin rijista a Cancer Health Fund! Kalmar sirri ta wucin gadi ita ce: $defaultPassword.", // Hausa
+            2 => "Salaamu ale $firstName, ope wa fun iforukosile re lori Cancer Health Fund! Oro asina igba die re ni: $defaultPassword.", // Yoruba
+            4 => "Ndewo $firstName, daalu maka ndebanye aha gi na Cancer Health Fund! Okwuntughe nwa oge gi bu: $defaultPassword.", // Igbo
+            default => "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."
+        };
 
-// Define the messages with numeric keys
-
-
-// $languageId = $request->languageId;
-
-if ($languageId == 1) {
-    $smsMessage = "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."; // English
-} elseif ($languageId == 3) {
-    $smsMessage = "Salam $firstName, godiya muke da yin rijista a Cancer Health Fund! Kalmar sirri ta wucin gadi ita ce: $defaultPassword."; // Hausa
-} elseif ($languageId == 2) {
-    $smsMessage = "Salaamu ale $firstName, ope wa fun iforukosile re lori Cancer Health Fund! Oro asina igba die re ni: $defaultPassword."; // Yoruba
-} elseif ($languageId == 4) {
-    $smsMessage = "Ndewo $firstName, daalu maka ndebanye aha gi na Cancer Health Fund! Okwuntughe nwa oge gi bu: $defaultPassword."; // Igbo
-} else {
-    $smsMessage = "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."; // Default to English
-}
-
-// Send the SMS
-$this->sendSMS($phone, $smsMessage);
-
-// Send the SMS
-// $this->sendSMS($phone, $smsMessage);
-
-        // $smsMessage = "Hello $firstName, thanks for registering on NCHF! Your temporary password is: $defaultPassword.";
-        // $this->sendSMS($phone, $smsMessage);
-        // Send WhatsApp message
-        // $this->sendWhatsAppNotification($phone, $firstName, $defaultPassword);
+        // Queue SMS job
+        Queue::push(new SendSMSJob($phone, $smsMessage));
 
         return response()->json([
             'success' => true,
-            'message' => 'User registered successfully. A welcome email and WhatsApp notification have been sent.',
+            'message' => 'User registered successfully. A welcome email and WhatsApp notification have been queued.',
             'user' => $user
         ], 201);
 
@@ -418,6 +422,7 @@ $this->sendSMS($phone, $smsMessage);
         ], 500);
     }
 }
+
 
 /**
  * Function to send WhatsApp message using WAAPI
