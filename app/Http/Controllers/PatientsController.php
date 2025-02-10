@@ -107,7 +107,7 @@ class PatientsController extends Controller
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
-    ->whereHas('patient_application_review', function ($query) {
+    ->whereHas('status', function ($query) {
         $query->where('statusId', 3); 
     })
     ->with([
@@ -145,7 +145,7 @@ class PatientsController extends Controller
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
-    ->whereHas('patient_application_review', function ($query) {
+    ->whereHas('status', function ($query) {
         $query->where('statusId', 3); 
     })
     ->with([
