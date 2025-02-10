@@ -119,7 +119,7 @@ class PatientsController extends Controller
             $query->orderBy('statusId', 'desc')->limit(1); 
         }
     ])
-    ->oderBy('updated_at', 'desc')
+    ->orderBy('updated_at', 'desc')
     ->get();
 
     
@@ -157,7 +157,7 @@ class PatientsController extends Controller
             $query->orderBy('statusId', 'desc')->limit(1); 
         }
     ])
-    ->oderBy('updated_at', 'desc')
+    ->orderBy('updated_at', 'desc')
     ->get();
 
     
