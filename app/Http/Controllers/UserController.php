@@ -383,9 +383,9 @@ public function createCMD(Request $request)
 
 if ($languageId == 1) {
     $smsMessage = "Hello $firstName, thanks for registering on Cancer Health Fund! Your temporary password is: $defaultPassword."; // English
-} elseif ($languageId == 2) {
-    $smsMessage = "Salam $firstName, gode muke da yin rijista a Cancer Health Fund! Kalmar sirri ta wucin gadi ita ce: $defaultPassword."; // Hausa
 } elseif ($languageId == 3) {
+    $smsMessage = "Salam $firstName, godiya muke da yin rijista a Cancer Health Fund! Kalmar sirri ta wucin gadi ita ce: $defaultPassword."; // Hausa
+} elseif ($languageId == 2) {
     $smsMessage = "Salaamu ale $firstName, ope wa fun iforukosile re lori Cancer Health Fund! Oro asina igba die re ni: $defaultPassword."; // Yoruba
 } elseif ($languageId == 4) {
     $smsMessage = "Ndewo $firstName, daalu maka ndebanye aha gi na Cancer Health Fund! Okwuntughe nwa oge gi bu: $defaultPassword."; // Igbo

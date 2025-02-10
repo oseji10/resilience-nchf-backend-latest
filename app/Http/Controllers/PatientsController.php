@@ -73,9 +73,11 @@ class PatientsController extends Controller
         'user',
         'cancer',
         'status.status_details' => function ($query) {
-            $query->latest()->limit(1); // Get only the latest status detail
+            // $query->latest()->limit(1); 
+            $query->orderBy('statusId', 'desc')->limit(1); 
         }
     ])
+    ->orderBy('updated_at', 'desc')
     ->get();
 
     
@@ -83,6 +85,123 @@ class PatientsController extends Controller
     }
 
 
+    
+
+
+    public function doctorPatients(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        // Retrieve patients who belong to the same hospital and have users with roleId = 1
+        $patients = Patient::where('hospital', $hospitalId)
+        ->where('doctor', $hospitalAdminId)
+    ->whereHas('user', function ($query) {
+        $query->where('role', 1); // Ensure user has roleId = 1
+    })
+    ->whereHas('patient_application_review', function ($query) {
+        $query->where('statusId', 3); 
+    })
+    ->with([
+        'doctor',
+        'user',
+        'cancer',
+        'status.status_details' => function ($query) {
+            // $query->latest()->limit(1); 
+            $query->orderBy('statusId', 'desc')->limit(1); 
+        }
+    ])
+    ->oderBy('updated_at', 'desc')
+    ->get();
+
+    
+        return response()->json($patients);
+    }
+
+    public function doctorReviewedPatients(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        // Retrieve patients who belong to the same hospital and have users with roleId = 1
+        $patients = Patient::where('hospital', $hospitalId)
+        ->where('doctor', $hospitalAdminId)
+    ->whereHas('user', function ($query) {
+        $query->where('role', 1); // Ensure user has roleId = 1
+    })
+    ->whereHas('patient_application_review', function ($query) {
+        $query->where('statusId', 3); 
+    })
+    ->with([
+        'doctor',
+        'user',
+        'cancer',
+        'status.status_details' => function ($query) {
+            // $query->latest()->limit(1); 
+            $query->orderBy('statusId', 'desc')->limit(1); 
+        }
+    ])
+    ->oderBy('updated_at', 'desc')
+    ->get();
+
+    
+        return response()->json($patients);
+    }
+
+
+    public function doctorPendingPatients(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        // Retrieve patients who belong to the same hospital and have users with roleId = 1
+        $patients = Patient::where('hospital', $hospitalId)
+        ->where('doctor', $hospitalAdminId)
+    ->whereHas('user', function ($query) {
+        $query->where('role', 1); // Ensure user has roleId = 1
+    })
+    ->whereHas('status', function ($query) {
+        $query->where('statusId', 2); 
+    })
+    ->with([
+        'doctor',
+        'user',
+        'cancer',
+        'status.status_details' => function ($query) {
+            // $query->latest()->limit(1); 
+            $query->orderBy('statusId', 'desc')->limit(1); 
+        }
+    ])
+    ->orderBy('updated_at', 'desc')
+    ->get();
+
+    
+        return response()->json($patients);
+    }
 
     public function hospitalDoctors(Request $request)
     {

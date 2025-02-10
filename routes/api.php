@@ -121,6 +121,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hospital/doctors', [PatientsController::class, 'hospitalDoctors']);
     Route::post('/patient/doctor/assign', [PatientsController::class, 'assignDoctor']);
     Route::post('/patient/doctor/careplan', [PatientsController::class, 'doctorcarePlan']);
+    Route::get('/patient/doctor/all', [PatientsController::class, 'doctorPatients']);
+    Route::get('/patient/doctor/reviewed', [PatientsController::class, 'doctorReviewedPatients']);
+    Route::get('/patient/doctor/pending', [PatientsController::class, 'doctorPendingPatients']);
     
     
     Route::post('/states', function (Request $request) {

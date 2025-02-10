@@ -78,7 +78,7 @@ class Patient extends Model
     }
 
     public function status(){
-        return $this->hasOne(ApplicationReview::class, 'patientUserId', 'userId');
+        return $this->hasOne(ApplicationReview::class, 'patientUserId', 'userId')->orderBy('statusId', 'desc');
     }
 
 }
