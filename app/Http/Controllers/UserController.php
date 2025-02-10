@@ -388,7 +388,7 @@ public function patientSignUp(Request $request)
             'patientUserId' => $user->id,
             'reviewerId' => $user->id,
             'reviewerRole' => 1,
-            'statusId' => $statusId
+            'statusId' => 2
         ];
         ApplicationReview::create($status_data);
 

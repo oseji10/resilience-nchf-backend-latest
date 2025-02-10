@@ -29,14 +29,25 @@ class AuthController extends Controller
     
         // Find user by email or phone number
         $user = User::where('email', $request->username)
-                     ->orWhere('phoneNumber', $request->username)
-                     ->first()->makeHidden(['password']);
+                    ->orWhere('phoneNumber', $request->username)
+                    ->first();
     
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        // If user is not found, return a custom error message
+        if (!$user) {
             throw ValidationException::withMessages([
-                'identifier' => ['The provided credentials are incorrect.'],
+                'username' => ['No account found with this email or phone number.'],
             ]);
         }
+    
+        // Check password
+        if (!Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['The password you entered is incorrect.'],
+            ]);
+        }
+    
+        // Hide password and other sensitive data
+        $user->makeHidden(['password']);
     
         // Create a Sanctum token
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -46,7 +57,7 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
-    
+      
 
     // Logout
     public function logout(Request $request)

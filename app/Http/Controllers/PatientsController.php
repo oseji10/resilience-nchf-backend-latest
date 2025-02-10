@@ -104,20 +104,19 @@ class PatientsController extends Controller
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
         ->where('doctor', $hospitalAdminId)
+        // ->where('status', 3)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
-    ->whereHas('status', function ($query) {
-        $query->where('statusId', 3); 
-    })
+    // ->whereHas('status', function ($query) {
+    //     $query->where('statusId', 3); 
+    // })
     ->with([
         'doctor',
         'user',
         'cancer',
-        'status.status_details' => function ($query) {
-            // $query->latest()->limit(1); 
-            $query->orderBy('statusId', 'desc')->limit(1); 
-        }
+        'status.status_details'
+        
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -142,20 +141,19 @@ class PatientsController extends Controller
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
         ->where('doctor', $hospitalAdminId)
+        ->where('status', 3)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
-    ->whereHas('status', function ($query) {
-        $query->where('statusId', 3); 
-    })
+    // ->whereHas('status', function ($query) {
+    //     $query->where('statusId', 3); 
+    // })
     ->with([
         'doctor',
         'user',
         'cancer',
-        'status.status_details' => function ($query) {
-            // $query->latest()->limit(1); 
-            $query->orderBy('statusId', 'desc')->limit(1); 
-        }
+        'status.status_details' 
+        
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -181,20 +179,18 @@ class PatientsController extends Controller
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
         ->where('doctor', $hospitalAdminId)
+        ->where('status', 2)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
-    ->whereHas('status', function ($query) {
-        $query->where('statusId', 2); 
-    })
+    // ->whereHas('status', function ($query) {
+    //     $query->where('statusId', 2); 
+    // })
     ->with([
         'doctor',
         'user',
         'cancer',
-        'status.status_details' => function ($query) {
-            // $query->latest()->limit(1); 
-            $query->orderBy('statusId', 'desc')->limit(1); 
-        }
+        'status.status_details' 
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -312,7 +308,7 @@ public function doctorcarePlan(Request $request)
         'reviewerId' => Auth::id(),
         'carePlan' => $request->carePlan,
         'amountRecommended' => $request->amountRecommended,
-        'status' => $request->status, // Set approved or disapproved
+        'status' => 3, // Set approved or disapproved
     ];
 
     // Update patient record
@@ -325,6 +321,9 @@ public function doctorcarePlan(Request $request)
         $status_data['statusId'] = 3;
 
         $application_status = ApplicationReview::create($status_data);
+
+        Patient::where('userId', $patient->userId)->update(['status' => 3]);
+
     // Return response based on status
     return response()->json([
         'message' => $request->status === 'approved' ? 'Care plan approved successfully' : 'Care plan disapproved',

@@ -77,8 +77,32 @@ class Patient extends Model
         return $this->belongsTo(User::class, 'userId', 'id');
     }
 
+    // public function status(){
+    //     return $this->hasOne(ApplicationReview::class, 'patientUserId', 'userId')->orderBy('statusId', 'desc');
+    // }
+
     public function status(){
-        return $this->hasOne(ApplicationReview::class, 'patientUserId', 'userId')->orderBy('statusId', 'desc');
+        return $this->hasOne(ApplicationReview::class, 'patientUserId', 'userId')->latest('reviewId');
+    }
+    
+    public function doctor_assessment(){
+        return $this->hasOne(DoctorAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
     }
 
+    public function social_welfare_assessment(){
+        return $this->hasOne(SocialWelfareAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+    }
+
+    public function mdt_assessment(){
+        return $this->hasOne(MDTAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+    }
+
+    public function cmd_assessment(){
+        return $this->hasOne(CMDAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+    }
+
+
+    public function nicrat_assessment(){
+        return $this->hasOne(NICRATAssessment::class, 'patientUserId', 'userId')->latest('reviewId');
+    }
 }

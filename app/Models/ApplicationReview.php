@@ -19,6 +19,6 @@ class ApplicationReview extends Model
     ];
     
     public function status_details(){
-        return $this->belongsTo(StatusList::class, 'statusId');
+        return $this->belongsTo(StatusList::class, 'statusId', 'statusId');
     }
 }
