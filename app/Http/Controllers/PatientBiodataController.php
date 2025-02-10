@@ -50,7 +50,7 @@ class PatientBiodataController extends Controller
         // Prepare additional fields
         $data['userId'] = Auth::id();
         $data['chfId'] = "CHF-{$hospital->hospitalShortName}-$uniqueID";
-        $data['status'] = $statusId;
+        $data['status'] = 2;
         
         // Use `firstOrCreate` to prevent duplicate records
         $patient = Patient::firstOrCreate(
