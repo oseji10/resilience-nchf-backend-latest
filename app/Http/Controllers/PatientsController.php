@@ -9,6 +9,10 @@ use App\Models\HMOs;
 use App\Models\User;
 use App\Models\HospitalStaff;
 use App\Models\DoctorAssessment;
+use App\Models\SocialWelfareAssessment;
+use App\Models\MDTfareAssessment;
+use App\Models\CMDAssessment;
+use App\Models\NICRATAssessment;
 use App\Models\ApplicationReview;
 use Illuminate\Support\Facades\Auth;
 
@@ -88,157 +92,9 @@ class PatientsController extends Controller
     
 
 
-    public function doctorPatients(Request $request)
-    {
-        $hospitalAdminId = Auth::id(); 
-    
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
-    
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
-    
-        $hospitalId = $currentHospital->hospitalId;
-    
-        // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('doctor', $hospitalAdminId)
-        // ->where('status', 3)
-    ->whereHas('user', function ($query) {
-        $query->where('role', 1); // Ensure user has roleId = 1
-    })
-    // ->whereHas('status', function ($query) {
-    //     $query->where('statusId', 3); 
-    // })
-    ->with([
-        'doctor',
-        'user',
-        'cancer',
-        'status.status_details'
-        
-    ])
-    ->orderBy('updated_at', 'desc')
-    ->get();
-
-    
-        return response()->json($patients);
-    }
-
-    public function doctorReviewedPatients(Request $request)
-    {
-        $hospitalAdminId = Auth::id(); 
-    
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
-    
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
-    
-        $hospitalId = $currentHospital->hospitalId;
-    
-        // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('doctor', $hospitalAdminId)
-        ->where('status', 3)
-    ->whereHas('user', function ($query) {
-        $query->where('role', 1); // Ensure user has roleId = 1
-    })
-    // ->whereHas('status', function ($query) {
-    //     $query->where('statusId', 3); 
-    // })
-    ->with([
-        'doctor',
-        'user',
-        'cancer',
-        'status.status_details',
-        'doctor_assessment',
-        'social_welfare_assessment' ,
-        'mdt_assessment',
-        'cmd_assessment',
-        'nicrat_assessment'
-        
-    ])
-    ->orderBy('updated_at', 'desc')
-    ->get();
-
-    
-        return response()->json($patients);
-    }
 
 
-    public function doctorPendingPatients(Request $request)
-    {
-        $hospitalAdminId = Auth::id(); 
-    
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
-    
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
-    
-        $hospitalId = $currentHospital->hospitalId;
-    
-        // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('doctor', $hospitalAdminId)
-        ->where('status', 2)
-    ->whereHas('user', function ($query) {
-        $query->where('role', 1); // Ensure user has roleId = 1
-    })
-    // ->whereHas('status', function ($query) {
-    //     $query->where('statusId', 2); 
-    // })
-    ->with([
-        'doctor',
-        'user',
-        'cancer',
-        'status.status_details' 
-    ])
-    ->orderBy('updated_at', 'desc')
-    ->get();
-
-    
-        return response()->json($patients);
-    }
-
-
-
-    public function socialWelfarePatients(Request $request)
-    {
-        $hospitalAdminId = Auth::id(); 
-    
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
-    
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
-    
-        $hospitalId = $currentHospital->hospitalId;
-    
-        // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('status', 3)
-    ->whereHas('user', function ($query) {
-        $query->where('role', 1); // Ensure user has roleId = 1
-    })
-    ->with([
-        'doctor',
-        'user',
-        'cancer',
-        'status.status_details',
-        'social_welfare_assessment' ,
-    ])
-    ->orderBy('updated_at', 'desc')
-    ->get();
-
-    
-        return response()->json($patients);
-    }
-
+    // LIST OF ALL DOCTORS IN A HOSPITAL
     public function hospitalDoctors(Request $request)
     {
         $hospitalAdminId = Auth::id(); 
@@ -327,7 +183,7 @@ class PatientsController extends Controller
 }
 
 
-
+// DOCTOR CAREPLAN/ASSESSMENT
 public function doctorcarePlan(Request $request)
 {
     // Validate the request
@@ -370,6 +226,50 @@ public function doctorcarePlan(Request $request)
         'data' => $patient,
     ], 200);
 }
+
+
+// SOCIAL WELFARE ASSESSMENT
+public function socialWelfareAssessment(Request $request)
+{
+   
+
+    // Find the patient by ID
+    $patient = Patient::findOrFail($request->patientId);
+
+    // Prepare data for update
+    $data = [
+        'patientUserId' => $patient->userId,
+        'reviewerId' => Auth::id(),
+        'appearance' => $request->appearance,
+        'bmi' => $request->bmi,
+        'commentOnHome' => $request->commentOnHome,
+        'commentOnEnvironment' => $request->commentOnEnvironment,
+        'commentOnFamily' => $request->commentOnFamily,
+        'generalComment' => $request->generalComment,
+        'status' => 4, 
+    ];
+
+    // Update patient record
+    // $patient->update($data);
+    SocialWelfareAssessment::firstOrCreate($data);
+
+    $status_data['patientUserId'] = $patient->userId;
+        $status_data['reviewerId'] = Auth::id();
+        $status_data['reviewerRole'] = 2;
+        $status_data['statusId'] = 4;
+
+        $application_status = ApplicationReview::create($status_data);
+
+        Patient::where('userId', $patient->userId)->update(['status' => 4]);
+
+    // Return response based on status
+            return response()->json([
+            'message' => $request->status === 'approved' ? 'Welfare form submitted successfully' : 'Patient welfare plan disapproved',
+            'data' => $patient,
+       
+    ], 200);
+}
+
 
 
 // Delete Patient

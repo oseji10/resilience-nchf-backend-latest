@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\CMDAssessment;
 
-class CMDAssementController extends Controller
+class CMDAssessmentController extends Controller
 {
     public function RetrieveAll()
     {
