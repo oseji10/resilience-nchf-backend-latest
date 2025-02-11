@@ -52,8 +52,8 @@ class SocialWelfareAssessmentController extends Controller
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
-        ->where('status', 3)
-        ->orWhere('status', 4)
+        ->whereBetween('status', [1, 3])
+        // ->orWhere('status', 4)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
@@ -140,6 +140,51 @@ class SocialWelfareAssessmentController extends Controller
     
         return response()->json($patients);
     }
+
+
+    
+// SOCIAL WELFARE ASSESSMENT
+public function socialWelfareAssessment(Request $request)
+{
+   
+
+    // Find the patient by ID
+    $patient = Patient::findOrFail($request->patientId);
+
+    // Prepare data for update
+    $data = [
+        'patientUserId' => $patient->userId,
+        'reviewerId' => Auth::id(),
+        'appearance' => $request->appearance,
+        'bmi' => $request->bmi,
+        'commentOnHome' => $request->commentOnHome,
+        'commentOnEnvironment' => $request->commentOnEnvironment,
+        'commentOnFamily' => $request->commentOnFamily,
+        'generalComment' => $request->generalComment,
+        'status' => 4, 
+    ];
+
+    // Update patient record
+    // $patient->update($data);
+    SocialWelfareAssessment::firstOrCreate($data);
+
+    $status_data['patientUserId'] = $patient->userId;
+        $status_data['reviewerId'] = Auth::id();
+        $status_data['reviewerRole'] = 3;
+        $status_data['statusId'] = 4;
+
+        $application_status = ApplicationReview::create($status_data);
+
+        Patient::where('userId', $patient->userId)->update(['status' => 4]);
+
+    // Return response based on status
+            return response()->json([
+            'message' => $request->status === 'approved' ? 'Welfare form submitted successfully' : 'Patient welfare plan disapproved',
+            'data' => $patient,
+       
+    ], 200);
+}
+
 
 
 }

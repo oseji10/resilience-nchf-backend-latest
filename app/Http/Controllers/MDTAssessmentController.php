@@ -179,7 +179,7 @@ public function MDTAssessment(Request $request)
 
     $status_data['patientUserId'] = $patient->userId;
         $status_data['reviewerId'] = Auth::id();
-        $status_data['reviewerRole'] = 2;
+        $status_data['reviewerRole'] = 4;
         $status_data['statusId'] = 5;
 
         $application_status = ApplicationReview::create($status_data);
@@ -188,7 +188,7 @@ public function MDTAssessment(Request $request)
 
     // Return response based on status
             return response()->json([
-            'message' => $request->status === 'approved' ? 'MDT form submitted successfully' : 'MDT plan disapproved',
+            'message' => $request->status === 'approved' ? 'Patient successfully approved' : 'Patient approval declined',
             'data' => $patient,
        
     ], 200);

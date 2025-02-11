@@ -228,49 +228,6 @@ public function doctorcarePlan(Request $request)
 }
 
 
-// SOCIAL WELFARE ASSESSMENT
-public function socialWelfareAssessment(Request $request)
-{
-   
-
-    // Find the patient by ID
-    $patient = Patient::findOrFail($request->patientId);
-
-    // Prepare data for update
-    $data = [
-        'patientUserId' => $patient->userId,
-        'reviewerId' => Auth::id(),
-        'appearance' => $request->appearance,
-        'bmi' => $request->bmi,
-        'commentOnHome' => $request->commentOnHome,
-        'commentOnEnvironment' => $request->commentOnEnvironment,
-        'commentOnFamily' => $request->commentOnFamily,
-        'generalComment' => $request->generalComment,
-        'status' => 4, 
-    ];
-
-    // Update patient record
-    // $patient->update($data);
-    SocialWelfareAssessment::firstOrCreate($data);
-
-    $status_data['patientUserId'] = $patient->userId;
-        $status_data['reviewerId'] = Auth::id();
-        $status_data['reviewerRole'] = 2;
-        $status_data['statusId'] = 4;
-
-        $application_status = ApplicationReview::create($status_data);
-
-        Patient::where('userId', $patient->userId)->update(['status' => 4]);
-
-    // Return response based on status
-            return response()->json([
-            'message' => $request->status === 'approved' ? 'Welfare form submitted successfully' : 'Patient welfare plan disapproved',
-            'data' => $patient,
-       
-    ], 200);
-}
-
-
 
 // Delete Patient
 public function deletePatient($patientId){

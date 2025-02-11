@@ -3,20 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\CMDAssessment;
-use App\Models\User;
-use App\Models\HospitalStaff;
 use App\Models\Patient;
+use App\Models\HospitalStaff;
 use App\Models\NICRATAssessment;
 use App\Models\ApplicationReview;
 use Illuminate\Support\Facades\Auth;
 
-class CMDAssessmentController extends Controller
+class NICRATAssessmentController extends Controller
 {
     public function RetrieveAll()
     {
-        $cmdassessment = CMDAssessment::all();
-        return response()->json($cmdassessment);
+        $nicratassessment = NICRATAssessment::all();
+        return response()->json($nicratassessment);
        
     }
 
@@ -26,17 +24,17 @@ class CMDAssessmentController extends Controller
         $data = $request->all();
     
         
-        $cmdassessment = CMDAssessment::create($data);
+        $nicratassessment = NICRATAssessment::create($data);
     
        
-        return response()->json($cmdassessment, 201); 
+        return response()->json($nicratassessment, 201); 
     }
 
 
 
     
 
-    public function CMDPatients(Request $request)
+    public function NICRATPatients(Request $request)
     {
         $hospitalAdminId = Auth::id(); 
     
@@ -50,9 +48,10 @@ class CMDAssessmentController extends Controller
         $hospitalId = $currentHospital->hospitalId;
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('status', 5)
-        ->orWhere('status', 6)
+        $patients = Patient::
+        // where('hospital', $hospitalId)
+        where('status', 6)
+        ->orWhere('status', 7)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
@@ -63,7 +62,8 @@ class CMDAssessmentController extends Controller
         'status.status_details',
         'social_welfare_assessment',
         'mdt_assessment',
-        'cmd_assessment'
+        'cmd_assessment',
+        'nicrat_assessment'
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -74,7 +74,7 @@ class CMDAssessmentController extends Controller
 
 
 
-    public function CMDPendingPatients(Request $request)
+    public function NICRATPendingPatients(Request $request)
     {
         $hospitalAdminId = Auth::id(); 
     
@@ -88,8 +88,9 @@ class CMDAssessmentController extends Controller
         $hospitalId = $currentHospital->hospitalId;
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('status', 5)
+        $patients = Patient::
+        // where('hospital', $hospitalId)
+        where('status', 6)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
@@ -100,7 +101,8 @@ class CMDAssessmentController extends Controller
         'status.status_details',
         'social_welfare_assessment',
         'mdt_assessment',
-        'cmd_assessment'
+        'cmd_assessment',
+        'nicrat_assessment'
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -111,7 +113,7 @@ class CMDAssessmentController extends Controller
 
 
 // ALL REVIEWED APPLICATIONS 
-    public function CMDReviewedPatients(Request $request)
+    public function NICRATReviewedPatients(Request $request)
     {
         $hospitalAdminId = Auth::id(); 
     
@@ -125,8 +127,9 @@ class CMDAssessmentController extends Controller
         $hospitalId = $currentHospital->hospitalId;
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
-        $patients = Patient::where('hospital', $hospitalId)
-        ->where('status', 6)
+        $patients = Patient::
+        // where('hospital', $hospitalId)
+        where('status', 7)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
@@ -137,7 +140,8 @@ class CMDAssessmentController extends Controller
         'status.status_details',
         'social_welfare_assessment' ,
         'mdt_assessment',
-        'cmd_assessment'
+        'cmd_assessment',
+        'nicrat_assessment'
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -151,8 +155,8 @@ class CMDAssessmentController extends Controller
 
     
 
-// CMD ASSESSMENT
-public function CMDAssessment(Request $request)
+// MDT ASSESSMENT
+public function NICRATAssessment(Request $request)
 {
    
 
@@ -164,21 +168,21 @@ public function CMDAssessment(Request $request)
         'patientUserId' => $patient->userId,
         'reviewerId' => Auth::id(),
         'comments' => $request->comments,
-        'status' => 6, 
+        'status' => 7, 
     ];
 
     // Update patient record
     // $patient->update($data);
-  CMDAssessment::firstOrCreate($data);
+    NICRATAssessment::firstOrCreate($data);
 
     $status_data['patientUserId'] = $patient->userId;
         $status_data['reviewerId'] = Auth::id();
-        $status_data['reviewerRole'] = 7;
-        $status_data['statusId'] = 6;
+        $status_data['reviewerRole'] = 11;
+        $status_data['statusId'] = 7;
 
         $application_status = ApplicationReview::create($status_data);
 
-        Patient::where('userId', $patient->userId)->update(['status' => 6]);
+        Patient::where('userId', $patient->userId)->update(['status' => 7]);
 
     // Return response based on status
             return response()->json([
@@ -187,6 +191,5 @@ public function CMDAssessment(Request $request)
        
     ], 200);
 }
-
 
 }

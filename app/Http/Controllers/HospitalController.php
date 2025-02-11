@@ -7,6 +7,7 @@ use App\Models\Hospital;
 use App\Models\Hub;
 use App\Models\SubHub;
 use App\Models\Cluster; 
+use App\Models\EwalletTransaction;
 class HospitalController extends Controller
 {
     public function RetrieveAll()
@@ -64,4 +65,26 @@ class HospitalController extends Controller
     return response()->json($medicine, 201);
     }
     
+
+    public function creditHospital($hospitalId, $amount)
+    {
+        $hospital = Hospital::find($hospitalId);
+        if (!$hospital) {
+            return response()->json(['error' => 'Hospital not found'], 404);
+        }
+    
+        // Increase hospital's wallet balance
+        $hospital->balance += $amount;
+        $hospital->save();
+    
+        // Log transaction
+        EwalletTransaction::create([
+            'hospitalId' => $hospitalId,
+            'amount' => $amount,
+            'type' => 'credit',
+            'reason' => 'NICRAT Wallet Funding'
+        ]);
+    
+        return response()->json(['message' => 'Wallet funded successfully', 'balance' => $hospital->balance]);
+    }
 }
