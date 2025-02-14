@@ -19,4 +19,14 @@ class Hub extends Model
     {
         return $this->hasMany(SubHub::class, 'hubId');
     }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class, 'hospitalId', 'hospitalId');
+    }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class, 'stateId');
+    }
 }

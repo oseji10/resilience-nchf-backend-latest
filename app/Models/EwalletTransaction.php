@@ -9,7 +9,7 @@ class EwalletTransaction extends Model
 {
     use HasFactory;
     public $table = 'e_wallet_transactions';
-    protected $fillable = ['transactionId', 'hospitalId', 'reason', 'walletId', 'amount', 'transactionType'];
+    protected $fillable = ['transactionId', 'transactionReference', 'initiatorId', 'hospitalId', 'reason', 'walletId', 'amount', 'transactionType'];
     protected $primaryKey = 'transactionId';
 
    

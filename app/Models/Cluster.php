@@ -15,8 +15,8 @@ class Cluster extends Model
       'subhubId', 'clusterId',	'hospitalId',	'clusterName',	'clusterCode',	'clusterType',	'status',	'stateId'
     ];
     
-    public function clusters()
+    public function hospital()
     {
-        return $this->hasMany(Cluster::class, 'subhubId');
+        return $this->belongsTo(Hospital::class, 'hospitalId');
     }
 }

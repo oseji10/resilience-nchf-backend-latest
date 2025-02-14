@@ -5,12 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Ewallet extends Model
+class NicratPool extends Model
 {
     use HasFactory;
-    public $table = 'e_wallets';
-    protected $fillable = ['walletId', 'hospitalId', 'balance', 'comments', 'createdBy', 'lastUpdatedBy'];
+    protected $table = 'pool';
+
     protected $primaryKey = 'walletId';
 
-   
+    protected $fillable = [
+        'balance',
+        'comments',
+        'lastUpdatedBy',
+        'createdBy'
+    ];
 }

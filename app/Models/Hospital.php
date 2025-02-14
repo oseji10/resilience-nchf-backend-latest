@@ -31,6 +31,11 @@ class Hospital extends Model
         return $this->hasMany(Hub::class, 'hospitalId');
     }
 
+    public function hub()
+    {
+        return $this->belongsTo(Hub::class, 'hospitalId');
+    }
+
     public function state()
     {
         return $this->belongsTo(State::class, 'stateId');
@@ -44,5 +49,10 @@ class Hospital extends Model
     public function hospitalCMD()
     {
         return $this->hasOne(User::class, 'id', 'hospitalCMD');
+    }
+
+    public function wallet_balance()
+    {
+        return $this->hasOne(EWallet::class, 'hospitalId');
     }
 }

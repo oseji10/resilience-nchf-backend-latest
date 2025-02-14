@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\AdminWelcomeEmail;
+use App\mail\NicratWelcomeEmail;
 use GuzzleHttp\Client;
 use App\Models\Hospital;
 use App\Models\HospitalStaff;
@@ -59,6 +60,21 @@ class UserController extends Controller
         $users = User::with('role', 'hospital_admins.hospital')->where('role', '=', '6')->get()->makeHidden(['password']);
         return response()->json($users, 201);
     }
+
+    public function otherStaff()
+    {
+        // Get the list of user IDs that are in the HospitalAdmin model
+        $hospitalAdminUserIds = HospitalStaff::pluck('userId')->toArray();
+    
+        // Get users with role 6 and not in the HospitalAdmin model
+        $users = User::with('role')
+            ->where('role', '!=', '1')
+            ->whereNotIn('id', $hospitalAdminUserIds)  // Exclude users in the HospitalAdmin model
+            ->get()
+            ->makeHidden(['password']);
+    
+        return response()->json($users, 201);
+    }
     
     public function cmds()
     {
@@ -66,50 +82,7 @@ class UserController extends Controller
         return response()->json($users, 201);
     }
 
-    public function clinic_receptionists()
-    {
-        $users = User::with('role')
-        ->where('role', '=', '2')
-        ->get();
-        return response()->json($users, 201); 
-       
-    }
-
-    public function front_desk()
-    {
-        $users = User::with('role')
-        ->where('role', '=', '3')
-        ->get();
-        return response()->json($users, 201); 
-       
-    }
-
-    public function doctors()
-    {
-        $users = User::with('role')
-        ->where('role', '=', '4')
-        ->get();
-        return response()->json($users, 201); 
-       
-    }
-
-    public function workshop_receptionists()
-    {
-        $users = User::with('role')
-        ->where('role', '=', '5')
-        ->get();
-        return response()->json($users, 201); 
-       
-    }
-
-    public function nurses()
-    {
-        $users = User::with('role')
-        ->where('role', '=', '6')
-        ->get();
-        return response()->json($users, 201); 
-       
-    }
+    
     
 
 
@@ -345,6 +318,63 @@ public function createCMD(Request $request)
         ], 500);
     }
 }
+
+
+
+
+public function createOtherStaff(Request $request)
+{
+    try {
+        // Generate a random password
+        $defaultPassword = strtoupper(Str::random(8)); 
+        $data = $request->all();
+        $data['password'] = Hash::make($defaultPassword);
+        // $roleId = $request->role;
+        // $hospitalId = $request->hospital;
+
+        // Extract user details
+        $firstName = $request->firstName;
+        $lastName = $request->lastName;
+        $email = $request->email;
+        $phone = $request->phoneNumber; // User's phone number
+        $roleId = $request->role;
+ 
+
+        
+        $role = Roles::where('roleId', '=', $roleId)->first();
+        $data['role'] = $roleId;
+        $roleName = $role->roleName;
+        // Create user
+        $user = User::create($data);
+        
+      
+        
+        $user->load('hospital_admins.hospital'); 
+
+        // Send welcome email with the role and hospital names
+        Mail::to($email)->send(new NicratWelcomeEmail($email, $firstName, $lastName, $roleName, $defaultPassword));
+
+        // // Send SMS with the role and hospital names
+        $smsMessage = "Hello $firstName, You have just been added as an $roleName at CHF. Your temporary password is: $defaultPassword.";
+        $this->sendSMS($phone, $smsMessage);
+
+        return response()->json([
+            'success' => true,
+            'message' => "$roleName has been added successfully. A welcome email and SMS notification have been sent.",
+            'user' => $user
+        ], 201);
+        
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'User registration failed. Please try again.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 
 //  Patient Application Signup
 public function patientSignUp(Request $request)

@@ -20,6 +20,14 @@ class RolesController extends Controller
        
     }
 
+
+    public function nicratRoles()
+    {
+        $roles = Roles::where('roleType', '=', 'NICRAT')->get();
+        return response()->json($roles);
+       
+    }
+
     public function store(Request $request)
     {
         // Directly get the data from the request

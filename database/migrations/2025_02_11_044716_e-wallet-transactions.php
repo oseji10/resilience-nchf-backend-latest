@@ -17,13 +17,15 @@ return new class extends Migration
             $table->unsignedBigInteger('hospitalId')->nullable();
             $table->double('amount')->default(0.00)->nullable();
             $table->enum('transactionType', ['credit', 'debit'])->nullable();
+            $table->string('transactionReference')->nullable();
             $table->string('reason')->nullable();
-
+            $table->unsignedBigInteger('initiatorId')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('hospitalId')->references('hospitalId')->on('hospitals');
             $table->foreign('walletId')->references('walletId')->on('e_wallets');
+            $table->foreign('initiatorId')->references('id')->on('users');
         });
     }
 

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('status')->nullable();
             $table->unsignedBigInteger('stateId')->nullable();
             
+            $table->foreign('hospitalId')->references('hospitalId')->on('hospitals');
             $table->foreign('stateId')->references('stateId')->on('states');
             $table->timestamps();
             $table->softDeletes();

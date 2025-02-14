@@ -22,6 +22,7 @@ use App\Models\State;
 use App\Models\HMOs;
 use App\Models\StatusList;
 use App\Models\Languages;
+use App\Models\NicratPool;
 use App\Http\Controllers\HospitalController;
 use App\Models\Cancer;
 use App\Mail\WelcomeEmail;
@@ -212,8 +213,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
    
     Route::get('/hospitals', [HospitalController::class, 'retrieveAll']);
-    Route::post('/hospitals', [HospitalController::class, 'store']);
+    Route::get('/hospitals/hubs/subhubs', [HospitalController::class, 'RetrieveSubhubs']);
+    Route::get('/hospitals/hubs/subhubs/clusters', [HospitalController::class, 'RetrieveClusters']);
     
+    Route::post('/hospitals', [HospitalController::class, 'store']);
+    Route::PUT('/hospitals/{id}/ewallet', [HospitalController::class, 'topUpEwallet']);
+    Route::post('/hospitals/hubs/subhubs', [HospitalController::class, 'createSubHub']);
+    Route::post('/hospitals/hubs/subhubs/clusters', [HospitalController::class, 'createCluster']);
+    
+    // Route::get('/pool/balance', [HospitalController::class, 'poolBalance']);
+    Route::get('/pool/balance', function(){
+        $status_list = NicratPool::first();
+        return response()->json($status_list);
+    });
+
+    Route::post('/pool/credit', function (Request $request) {
+        $pool = $request->all();
+        $pool['balance'] = $request->amount;
+        NicratPool::create($pool);
+        return response()->json(['message' => 'Pool credited successfully', $pool]);
+    });
+    
+
     Route::post('/hospital-users', [UserController::class, 'createHospitalStaff']);
     
     Route::post('/hospital-staff', [UserController::class, 'createHospitalStaff']);
@@ -223,6 +244,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hospital-admins', [UserController::class, 'hospitalAdmins']);
     
     Route::post('/nicrat-users', [UserController::class, 'createNicratStaff']);
+    Route::get('/other-staff', [UserController::class, 'otherStaff']);
+    Route::post('/other-staff', [UserController::class, 'createOtherStaff']);
+    
     
     Route::post('/cmds', [UserController::class, 'createCMD']);
     Route::get('/cmds', [UserController::class, 'cmds']);
@@ -260,7 +284,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/roles', [RolesController::class, 'retrieveAll']);
 Route::get('/roles/hospital', [RolesController::class, 'hospitalRoles']);
+Route::get('/roles/nicrat', [RolesController::class, 'nicratRoles']);
 Route::post('/roles', [RolesController::class, 'store']);
+
 
 
 

@@ -19,4 +19,9 @@ class SubHub extends Model
     {
         return $this->hasMany(Cluster::class, 'subhubId');
     }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class, 'hospitalId');
+    }
 }
