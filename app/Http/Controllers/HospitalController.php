@@ -9,7 +9,7 @@ use App\Models\Hub;
 use App\Models\SubHub;
 use App\Models\Cluster; 
 use App\Models\EwalletTransaction;
-use App\Models\EWallet;
+use App\Models\Ewallet;
 use App\Models\NicratPool;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -334,7 +334,7 @@ public function topUpEwallet(Request $request)
     
         $hospitalId = $currentHospital->hospitalId;
     
-        $wallet_balance = EWallet::where('hospitalId', $hospitalId)->first();
+        $wallet_balance = Ewallet::where('hospitalId', $hospitalId)->first();
         return response()->json($wallet_balance);
     }
 }
