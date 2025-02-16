@@ -31,11 +31,13 @@ use App\Http\Controllers\ServiceController;
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 use App\Http\Controllers\RolesController;
 
-use App\Http\Controllers\DoctorAssementController;
+use App\Http\Controllers\DoctorAssessmentController;
 use App\Http\Controllers\SocialWelfareAssessmentController;
 use App\Http\Controllers\MDTAssessmentController;
 use App\Http\Controllers\CMDAssessmentController;
 use App\Http\Controllers\NICRATAssessmentController;
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -127,13 +129,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hospital/patients', [PatientsController::class, 'hospitalPatients']);
     Route::get('/hospital/doctors', [PatientsController::class, 'hospitalDoctors']);
     Route::post('/patient/doctor/assign', [PatientsController::class, 'assignDoctor']);
+    Route::get('/hospital/ewallet/balance', [HospitalController::class, 'hospitalEwalletBalance']);
+    Route::get('/patient/ewallet/balance', [PatientsController::class, 'fundsUtilization']);
     
     Route::post('/patient/doctor/careplan', [DoctorAssessmentController::class, 'doctorcarePlan']);
     Route::get('/patient/doctor/all', [DoctorAssessmentController::class, 'doctorPatients']);
     Route::get('/patient/doctor/reviewed', [DoctorAssessmentController::class, 'doctorReviewedPatients']);
     Route::get('/patient/doctor/pending', [DoctorAssessmentController::class, 'doctorPendingPatients']);
     
-
+    
     Route::get('/patient/social-welfare/all', [SocialWelfareAssessmentController::class, 'socialWelfarePatients']);
     Route::get('/patient/social-welfare/pending', [SocialWelfareAssessmentController::class, 'socialWelfarePendingPatients']);
     Route::get('/patient/social-welfare/reviewed', [SocialWelfareAssessmentController::class, 'socialWelfareReviewedPatients']);
@@ -153,8 +157,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient/nicrat/pending', [NICRATAssessmentController::class, 'NICRATPendingPatients']);
     Route::get('/patient/nicrat/reviewed', [NICRATAssessmentController::class, 'NICRATReviewedPatients']);
     Route::post('/patient/nicrat/assessment', [NICRATAssessmentController::class, 'NICRATAssessment']);
-   
-
+    
+    Route::get('/hospital/prescriptions', [BillingController::class, 'hospitalPrescriptions']);
+    Route::post('/prescriptions', [BillingController::class, 'storePrescription']);
+    Route::get('/prescriptions/{prescriptionId}', [BillingController::class, 'patientDrugPrescriptions']);
+    Route::post('/dispense', [BillingController::class, 'createBilling']);
+    
     Route::post('/states', function (Request $request) {
         $states = $request->all(); // Expecting an array of states
     

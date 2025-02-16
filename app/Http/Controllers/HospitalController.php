@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Hospital;
+use App\Models\HospitalStaff;
 use App\Models\Hub;
 use App\Models\SubHub;
 use App\Models\Cluster; 
@@ -315,5 +316,25 @@ public function topUpEwallet(Request $request)
         ]);
     
         return response()->json(['message' => 'Wallet funded successfully', 'balance' => $hospital->balance]);
+    }
+
+
+
+
+    // Hospital Ewallet balance
+    public function hospitalEwalletBalance() {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        $wallet_balance = Ewallet::where('hospitalId', $hospitalId)->first();
+        return response()->json($wallet_balance);
     }
 }

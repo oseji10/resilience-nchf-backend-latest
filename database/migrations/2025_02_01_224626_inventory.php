@@ -14,6 +14,7 @@ return new class extends Migration
         Schema :: create('inventory', function (Blueprint $table) {
             $table -> id('inventoryId');
             $table -> unsignedBigInteger('productId') -> nullable();
+            $table -> unsignedBigInteger('hospitalId') -> nullable();
             $table -> string('batchNumber') -> nullable();
             $table -> string('expiryDate') -> nullable();
             $table -> string('inventoryType') -> nullable();
@@ -27,6 +28,7 @@ return new class extends Migration
             $table -> timestamps();
 
             $table->foreign('uploadedBy')->references('id')->on('users');
+            $table->foreign('hospitalId')->references('hospitalId')->on('hospitals');
             $table->foreign('productId')->references('productId')->on('products');
         });
     }

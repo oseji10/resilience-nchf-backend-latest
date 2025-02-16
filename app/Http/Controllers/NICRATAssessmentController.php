@@ -76,16 +76,16 @@ class NICRATAssessmentController extends Controller
 
     public function NICRATPendingPatients(Request $request)
     {
-        $hospitalAdminId = Auth::id(); 
+        // $hospitalAdminId = Auth::id(); 
     
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+        // // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        // $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
     
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
+        // if (!$currentHospital) {
+        //     return response()->json(['message' => 'Hospital admin not found'], 404);
+        // }
     
-        $hospitalId = $currentHospital->hospitalId;
+        // $hospitalId = $currentHospital->hospitalId;
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::
@@ -115,16 +115,16 @@ class NICRATAssessmentController extends Controller
 // ALL REVIEWED APPLICATIONS 
     public function NICRATReviewedPatients(Request $request)
     {
-        $hospitalAdminId = Auth::id(); 
+        // $hospitalAdminId = Auth::id(); 
     
-        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
-        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+        // // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        // $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
     
-        if (!$currentHospital) {
-            return response()->json(['message' => 'Hospital admin not found'], 404);
-        }
+        // if (!$currentHospital) {
+        //     return response()->json(['message' => 'Hospital admin not found'], 404);
+        // }
     
-        $hospitalId = $currentHospital->hospitalId;
+        // $hospitalId = $currentHospital->hospitalId;
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::

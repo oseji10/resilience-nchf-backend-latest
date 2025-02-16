@@ -7,12 +7,19 @@ use App\Models\Medicines;
 use App\Models\Billing;
 use App\Models\Inventory;
 use App\Models\Product;
-use App\Models\Patients;
+use App\Models\Patient;
 use App\Models\Service;
+use App\Models\HospitalStaff;
+use App\Models\Ewallet;
+use App\Models\EwalletTransaction;
 
 use Illuminate\Support\Facades\Auth;
 use DB;
 use Illuminate\Support\Str;
+
+use App\Models\Prescription;
+use App\Models\PrescriptionItem;
+use Illuminate\Support\Facades\Validator;
 
 class BillingController extends Controller
 {
@@ -76,112 +83,122 @@ public function updateBillingStatus(Request $request)
 }
 
 
-    public function store(Request $request)
-    {
+public function createBilling(Request $request)
+{
+    $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
 
-     // Generate a unique transaction ID
+    // Generate a unique transaction ID
     $transactionId = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
 
-        // Validate incoming data
-        $request->validate([
-            'patientId'     => 'nullable',
-            'items'         => 'nullable|array', // Ensure 'items' is an array
-            'items.*.inventoryId' => 'nullable',
-            'items.*.quantity'    => 'nullable|integer|min:1',
-        ]);
-    
-        // Start a database transaction to ensure atomicity
-        DB::beginTransaction();
-    
-        try {
-            $billedItems = [];
-    
-            foreach ($request->items as $item) {
-                if ($item['inventoryType'] === 'Products') {  // Ensure correct inventoryType
-                    // Find the inventory item
-                    $inventory = Inventory::find($item['inventoryId']);
-    
-                    if (!$inventory) {
-                        // Rollback transaction if inventory is not found
-                        DB::rollBack();
-                        return response()->json(['message' => 'One or more inventory items not found'], 404);
-                    }
-    
-                    // Ensure quantitySold is initialized to 0 if null
-                    $inventory->quantitySold = $inventory->quantitySold ?? 0;
-    
-                    // Check stock availability
-                    if ($inventory->quantityReceived < ($inventory->quantitySold + $item['quantity'])) {
-                        DB::rollBack();
-                        return response()->json(['message' => 'Insufficient stock for ' . $inventory->product->productName], 400);
-                    }
-    
-                    // Handle products
-                    $product = Product::find($item['productId']);
-                    if (!$product) {
-                        DB::rollBack();
-                        return response()->json(['message' => 'Product not found'], 404);
-                    }
-    
-                    $totalCost = $product->productCost * $item['quantity'];
-    
-                    $billing = Billing::create([
-                        'transactionId' => $transactionId,
-                        'patientId'     => $request->patientId,
-                        'productId'     => $item['productId'],
-                        'billingType'   => 'Product',
-                        'categoryType'  => $item['categoryType'],
-                        'inventoryId'   => $item['inventoryId'],
-                        'quantity'      => $item['quantity'],
-                        'cost'          => $totalCost,
-                        'billedBy'      => Auth::user()->id,
-                        'paymentStatus' => 'pending',
-                    ]);
-    
-                    // Update inventory
-                    $inventory->quantitySold += $item['quantity'];
-                    $inventory->save();
-                } 
-                else { // This handles services
-                    // Handle services
-                    $service = Service::find($item['serviceId']);
-                    if (!$service) {
-                        DB::rollBack();
-                        return response()->json(['message' => 'Service not found'], 404);
-                    }
-    
-                    $totalCost = $service->serviceCost * $item['quantity'];
-    
-                    $billing = Billing::create([
-                        'transactionId' => $transactionId,
-                        'patientId'     => $request->patientId,
-                        'serviceId'     => $item['serviceId'], // Fixed serviceId
-                        'billingType'   => 'Service',
-                        'categoryType'  => $item['categoryType'],
-                        'quantity'      => $item['quantity'],
-                        'cost'          => $totalCost,
-                        'billedBy'      => Auth::user()->id,
-                        'paymentStatus' => 'pending',
-                    ]);
-                }
-    
-                // Add billing item to array
-                $billedItems[] = $billing;
+    // Validate incoming data
+    $request->validate([
+        'patientId' => 'nullable',
+        // 'hospitalId' => 'required', // Ensure hospitalId is provided
+        'prescriptions' => 'required|array',
+        'prescriptions.*.inventoryId' => 'required',
+        'prescriptions.*.dispensedQuantity' => 'required|integer|min:1',
+    ]);
+
+    // Start a database transaction
+    DB::beginTransaction();
+
+    try {
+        $billedItems = [];
+        $totalAmount = 0; // Store total cost for all prescriptions
+
+        foreach ($request->prescriptions as $item) {
+            $inventory = Inventory::find($item['inventoryId']);
+            if (!$inventory) {
+                DB::rollBack();
+                return response()->json(['message' => 'One or more inventory items not found'], 404);
             }
-    
-            // Commit transaction
-            DB::commit();
-    
-            // Return success response
-            return response()->json(['message' => 'Billing records created successfully', 'billings' => $billedItems], 201);
-    
-        } catch (\Exception $e) {
-            // Rollback transaction on any exception
-            DB::rollBack();
-            return response()->json(['message' => 'Something went wrong. Please try again.', 'error' => $e->getMessage()], 500);
+
+            if ($inventory->quantityReceived < ($inventory->quantitySold + $item['dispensedQuantity'])) {
+                DB::rollBack();
+                return response()->json(['message' => 'Insufficient stock for inventory ID ' . $item['inventoryId']], 400);
+            }
+
+            $product = Product::find($item['inventoryId']); 
+            if (!$product) {
+                DB::rollBack();
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $totalCost = $product->productCost * $item['dispensedQuantity'];
+            $totalAmount += $totalCost; // Accumulate total cost
+
+            $billing = Billing::create([
+                'transactionId' => $transactionId,
+                'patientId'     => $request->patientId,
+                'productId'     => $item['inventoryId'],
+                'billingType'   => 'Product',
+                'categoryType'  => 'Prescription',
+                'inventoryId'   => $item['inventoryId'],
+                'quantity'      => $item['dispensedQuantity'],
+                'cost'          => $totalCost,
+                'billedBy'      => Auth::user()->id,
+                'paymentStatus' => 'paid',
+            ]);
+
+            // Update inventory
+            $inventory->quantitySold += $item['dispensedQuantity'];
+            $inventory->save();
+
+            $billedItems[] = $billing;
         }
+
+        // Fetch the hospital e-wallet
+        $wallet = Ewallet::where('hospitalId', $hospitalId)->first();
+
+        if (!$wallet) {
+            DB::rollBack();
+            return response()->json(['message' => 'Hospital e-wallet not found'], 404);
+        }
+
+        // Check if wallet has sufficient balance
+        if ($wallet->balance < $totalAmount) {
+            DB::rollBack();
+            return response()->json(['message' => 'Insufficient balance in hospital e-wallet'], 400);
+        }
+
+        // Deduct total cost from e-wallet
+        $wallet->balance -= $totalAmount;
+        $wallet->save();
+
+         // Log transaction
+         EwalletTransaction::create([
+            'walletId' => $wallet->walletId,
+            'hospitalId' => $hospitalId,
+            'amount' => $totalAmount,
+            'transactionType' => 'debit',
+            'reason' => 'Patient billing',
+            'transactionReference' => $transactionId,
+            'initiatorId' => $hospitalAdminId,
+        ]);
+        // Commit transaction
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Billing records created successfully, e-wallet debited',
+            'billings' => $billedItems,
+            'remaining_balance' => $wallet->balance
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Something went wrong. Please try again.', 'error' => $e->getMessage()], 500);
     }
-    
+}
+
 
    
     public function update(Request $request, $billingId)
@@ -217,5 +234,139 @@ public function updateBillingStatus(Request $request)
         ]);
     }
     }
+
+
+
+
+    // Create prescription
+    public function storePrescription(Request $request)
+    {
+
+        $hospitalAdminId = Auth::id(); 
     
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+
+        $prescriptionId = mt_rand(10000000, 99999999);
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'patientId' => 'nullable',
+            'prescriptions' => 'required|array|min:1',
+            'prescriptions.*.type' => 'required|in:product,service',
+            'prescriptions.*.productId' => 'nullable|exists:products,productId',
+            'prescriptions.*.serviceId' => 'nullable|exists:services,serviceId',
+            'prescriptions.*.quantity' => 'nullable|integer|min:1',
+            'comments' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Create a new prescription
+        $prescription = Prescription::create([
+            'patientId' => $request->patientId,
+            'comments' => $request->comments,
+            'prescriptionId' => $prescriptionId,
+            'prescribedBy' => Auth::id(),
+            'hospitalId' => $hospitalId,
+        ]);
+
+        // Store prescription items
+        foreach ($request->prescriptions as $item) {
+            PrescriptionItem::create([
+                'prescriptionId' => $prescriptionId,
+                'type' => $item['type'],
+                'productId' => $item['type'] === 'product' ? $item['productId'] : null,
+                'serviceId' => $item['type'] === 'service' ? $item['serviceId'] : null,
+                'quantity' => $item['type'] === 'product' ? $item['quantity'] : null,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Prescription stored successfully!',
+            'prescription' => $prescription->load('items')
+        ], 201);
+    }
+    
+
+// Hospital Prescriptions
+    public function hospitalPrescriptions(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        $prescriptions = Prescription::with('patient.user', 'patient.cancer')
+        ->whereHas('patient.user', function ($query) {
+            $query->where('role', 1); // Ensure user has roleId = 1
+        })
+        ->whereHas('patient', function ($query) use ($hospitalId) {
+            $query->where('hospital', $hospitalId); // Ensure user has roleId = 1
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+        
+
+    
+        return response()->json($prescriptions);
+    }
+
+    
+    public function patientDrugPrescriptions($prescriptionId)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        $prescriptions = PrescriptionItem::where('prescriptionId', $prescriptionId)
+            ->where('type', 'product')
+            ->with(['product' => function ($query) use ($hospitalId) {
+                $query->with(['stock' => function ($stockQuery) use ($hospitalId) {
+                    $stockQuery->where('hospitalId', $hospitalId); // Ensure stock is checked for the same hospital
+                }]);
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($prescription) {
+                // Ensure stock exists before accessing properties
+                $stock = $prescription->product->stock ?? null;
+                $quantityReceived = $stock->quantityReceived ?? 0;
+                $quantitySold = $stock->quantitySold ?? 0;
+    
+                // Calculate stock availability
+                $quantity_in_stock = max($quantityReceived - $quantitySold, 0);
+    
+                // Add stock info to the response
+                $prescription->stock_available = $quantity_in_stock;
+                $prescription->out_of_stock = $quantity_in_stock <= 0;
+    
+                return $prescription;
+            });
+    
+        return response()->json($prescriptions);
+    }
+    
+
+
 }

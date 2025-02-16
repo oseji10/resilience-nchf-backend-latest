@@ -14,6 +14,7 @@ use App\Models\MDTfareAssessment;
 use App\Models\CMDAssessment;
 use App\Models\NICRATAssessment;
 use App\Models\ApplicationReview;
+use App\Models\Billing;
 use Illuminate\Support\Facades\Auth;
 
 class PatientsController extends Controller
@@ -183,50 +184,13 @@ class PatientsController extends Controller
 }
 
 
-// DOCTOR CAREPLAN/ASSESSMENT
-public function doctorcarePlan(Request $request)
-{
-    // Validate the request
-    $request->validate([
-        'patientId' => 'required',
-        // 'reviewerId' => 'required',
-        'carePlan' => 'required|string',
-        'amountRecommended' => 'required|numeric',
-        'status' => 'nullable', // Ensure it's either approved or disapproved
-    ]);
-
-    // Find the patient by ID
-    $patient = Patient::findOrFail($request->patientId);
-
-    // Prepare data for update
-    $data = [
-        'patientUserId' => $patient->userId,
-        'reviewerId' => Auth::id(),
-        'carePlan' => $request->carePlan,
-        'amountRecommended' => $request->amountRecommended,
-        'status' => 3, // Set approved or disapproved
-    ];
-
-    // Update patient record
-    // $patient->update($data);
-    DoctorAssessment::firstOrCreate($data);
-
-    $status_data['patientUserId'] = $patient->userId;
-        $status_data['reviewerId'] = Auth::id();
-        $status_data['reviewerRole'] = 2;
-        $status_data['statusId'] = 3;
-
-        $application_status = ApplicationReview::create($status_data);
-
-        Patient::where('userId', $patient->userId)->update(['status' => 3]);
-
-    // Return response based on status
-    return response()->json([
-        'message' => $request->status === 'approved' ? 'Care plan approved successfully' : 'Care plan disapproved',
-        'data' => $patient,
-    ], 200);
+// Patient funds utilization
+public function fundsUtilization(){
+    
+    $patient = Patient::where('userId', Auth::id())->first();
+    $utilization = Billing::where('patientId', $patient->patientId)->sum('cost');
+    return response()->json($utilization);
 }
-
 
 
 // Delete Patient
