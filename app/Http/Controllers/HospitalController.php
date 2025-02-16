@@ -334,7 +334,7 @@ public function topUpEwallet(Request $request)
     
         $hospitalId = $currentHospital->hospitalId;
     
-        $wallet_balance = Ewallet::where('hospitalId', $hospitalId)->first();
+        $wallet_balance = EWallet::where('hospitalId', $hospitalId)->first();
         return response()->json($wallet_balance);
     }
 }
