@@ -139,61 +139,72 @@ public function topUpEwallet(Request $request)
 
     
 
-    public function getHospitalNetwork()
-    {
-        $nodes = [];
-        $edges = [];
-        $positionX = 250;
-        $positionY = 0;
+public function getHospitalNetwork()
+{
+    $nodes = [];
+    $edges = [];
+    $positionX = 250;
+    $positionY = 0;
+    $addedNodes = []; // Track unique nodes to prevent duplicates
 
-        $hubs = Hospital::with('hubs.subhubs.clusters')->get();
-        // $hubs = Hub::with('subhubs.clusters.hospitals')->get();
+    // Fetching Hubs with their nested relationships
+    $hubs = Hub::with('hospital', 'subhubs.hospital', 'subhubs.clusters.hospitals')->get();
 
-        foreach ($hubs as $hubIndex => $hub) {
-            $hubId = "hub_" . $hub->id;
+    foreach ($hubs as $hubIndex => $hub) {
+        $hubId = "hub_" . $hub->hubId;
+        $nodes[] = [
+            "id" => $hubId,
+            "position" => ["x" => $positionX, "y" => $positionY],
+            "data" => ["label" => $hub->hospital ? $hub->hospital->hospitalName : "Unknown Hub"],
+            "type" => "input",
+        ];
+
+        $prevId = $hubId;
+        $subY = $positionY + 100;
+
+        foreach ($hub->subhubs as $subhub) {
+            $subhubId = "subhub_" . $subhub->subhubId;
             $nodes[] = [
-                "id" => $hubId,
-                "position" => ["x" => $positionX, "y" => $positionY],
-                "data" => ["label" => $hub->name],
-                "type" => "input",
+                "id" => $subhubId,
+                "position" => ["x" => $positionX - 150, "y" => $subY],
+                "data" => ["label" => $subhub->hospital ? $subhub->hospital->hospitalName : "Unknown Subhub"],
             ];
-            $prevId = $hubId;
-            $subY = $positionY + 100;
+            $edges[] = ["id" => "e_" . $prevId . "_" . $subhubId, "source" => $prevId, "target" => $subhubId];
 
-            foreach ($hub->subhubs as $subhub) {
-                $subhubId = "subhub_" . $subhub->id;
+            foreach ($subhub->clusters as $cluster) {
+                $clusterId = "cluster_" . $cluster->clusterId;
                 $nodes[] = [
-                    "id" => $subhubId,
-                    "position" => ["x" => $positionX - 150, "y" => $subY],
-                    "data" => ["label" => $subhub->name],
+                    "id" => $clusterId,
+                    "position" => ["x" => $positionX + 150, "y" => $subY + 100],
+                    "data" => ["label" => $cluster->clusterName ?? "Unknown Cluster"],
                 ];
-                $edges[] = ["id" => "e_" . $prevId . "_" . $subhubId, "source" => $prevId, "target" => $subhubId];
+                $edges[] = ["id" => "e_" . $subhubId . "_" . $clusterId, "source" => $subhubId, "target" => $clusterId];
 
-                foreach ($subhub->clusters as $cluster) {
-                    $clusterId = "cluster_" . $cluster->id;
-                    $nodes[] = [
-                        "id" => $clusterId,
-                        "position" => ["x" => $positionX + 150, "y" => $subY + 100],
-                        "data" => ["label" => $cluster->name],
-                    ];
-                    $edges[] = ["id" => "e_" . $subhubId . "_" . $clusterId, "source" => $subhubId, "target" => $clusterId];
-
+                if (!empty($cluster->hospitals)) {
                     foreach ($cluster->hospitals as $hospital) {
-                        $hospitalId = "hospital_" . $hospital->id;
-                        $nodes[] = [
-                            "id" => $hospitalId,
-                            "position" => ["x" => $positionX, "y" => $subY + 200],
-                            "data" => ["label" => $hospital->name],
-                        ];
+                        $hospitalId = "hospital_" . $hospital->hospitalId;
+
+                        // Avoid duplicate hospital nodes
+                        if (!isset($addedNodes[$hospitalId])) {
+                            $nodes[] = [
+                                "id" => $hospitalId,
+                                "position" => ["x" => $positionX, "y" => $subY + 200],
+                                "data" => ["label" => $hospital->hospitalName],
+                            ];
+                            $addedNodes[$hospitalId] = true;
+                        }
+
                         $edges[] = ["id" => "e_" . $clusterId . "_" . $hospitalId, "source" => $clusterId, "target" => $hospitalId];
                     }
                 }
             }
-            $positionX += 500;
         }
 
-        return response()->json(["nodes" => $nodes, "edges" => $edges]);
+        $positionX += 500;
     }
+
+    return response()->json(["nodes" => $nodes, "edges" => $edges]);
+}
 
     public function store(Request $request)
     {

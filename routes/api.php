@@ -223,7 +223,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hospitals', [HospitalController::class, 'retrieveAll']);
     Route::get('/hospitals/hubs/subhubs', [HospitalController::class, 'RetrieveSubhubs']);
     Route::get('/hospitals/hubs/subhubs/clusters', [HospitalController::class, 'RetrieveClusters']);
-    
+    Route::get('/hospitals/network', [HospitalController::class, 'getHospitalNetwork']);
+
     Route::post('/hospitals', [HospitalController::class, 'store']);
     Route::PUT('/hospitals/{id}/ewallet', [HospitalController::class, 'topUpEwallet']);
     Route::post('/hospitals/hubs/subhubs', [HospitalController::class, 'createSubHub']);
