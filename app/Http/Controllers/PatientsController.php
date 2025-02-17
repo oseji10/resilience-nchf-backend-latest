@@ -49,7 +49,7 @@ class PatientsController extends Controller
     
     
     public function RetrieveAll(Request $request){
-        $patients = Patient::all();
+        $patients = Patient::with('user', 'hospital', 'cancer', 'stateOfOrigin', 'doctor')->get();
         return $patients;
 
     }
