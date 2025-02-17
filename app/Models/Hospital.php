@@ -53,6 +53,6 @@ class Hospital extends Model
 
     public function wallet_balance()
     {
-        return $this->hasOne(EWallet::class, 'hospitalId');
+        return $this->hasOne(Ewallet::class, 'hospitalId');
     }
 }

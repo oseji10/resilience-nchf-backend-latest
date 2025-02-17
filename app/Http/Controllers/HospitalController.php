@@ -223,7 +223,7 @@ public function getHospitalNetwork()
 
         $wallet['hospitalId'] = $hospital->hospitalId;
         $wallet['createdBy'] = Auth::id();
-        $e_wallet = EWallet::firstOrCreate($wallet);
+        $e_wallet = Ewallet::firstOrCreate($wallet);
 
         $hospital->load('state.zone'); 
        
