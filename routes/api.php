@@ -2,7 +2,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DoctorsController;
 use App\Http\Controllers\PatientsController;
@@ -23,6 +23,7 @@ use App\Models\HMOs;
 use App\Models\StatusList;
 use App\Models\Languages;
 use App\Models\NicratPool;
+use App\Models\EwalletTransaction;
 use App\Http\Controllers\HospitalController;
 use App\Models\Cancer;
 use App\Mail\WelcomeEmail;
@@ -124,7 +125,11 @@ Route::delete('/manufacturers/{manufacturerId}', [ManufacturersController::class
 
 
 
+
+
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/generate-invoice', [InvoiceController::class, 'generateInvoice']);
+
     Route::get('/patients', [PatientsController::class, 'retrieveAll']);
     Route::get('/hospital/patients', [PatientsController::class, 'hospitalPatients']);
     Route::get('/hospital/doctors', [PatientsController::class, 'hospitalDoctors']);
@@ -215,6 +220,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/confirm-payment', [BillingController::class, 'updateBillingStatus']);
 
     Route::get('/billings', [BillingController::class, 'retrieveAll']);
+    Route::get('/hospital/billings', [BillingController::class, 'retrieveHospitalBillings']);
+    
     Route::post('/billings', [BillingController::class, 'store']);
     Route::put('/billings/{id}', [BillingController::class, 'update']);
     Route::delete('/billings', [BillingController::class, 'delete']);
@@ -235,13 +242,39 @@ Route::middleware('auth:sanctum')->group(function () {
         $status_list = NicratPool::first();
         return response()->json($status_list);
     });
-
+    
+//    Credit pool account
     Route::post('/pool/credit', function (Request $request) {
-        $pool = $request->all();
-        $pool['balance'] = $request->amount;
-        NicratPool::create($pool);
-        return response()->json(['message' => 'Pool credited successfully', $pool]);
+        // Find the record for NicratPool with ID 2
+        $pool = NicratPool::find(2);
+    
+        // Check if the record exists
+        if (!$pool) {
+            return response()->json(['error' => 'Pool not found'], 404);
+        }
+    
+        // Add the new amount to the current balance
+        $pool->balance += $request->amount;
+        $pool->save(); // Save the updated balance
+    
+         // Create a transaction record in the EwalletTransaction table
+         
+         $transaction_data['walletId'] = $pool->walletId;
+        //  $transaction_data['hospitalId'] = $request->hospitalId;
+         $transaction_data['amount'] = $request->amount;
+         $transaction_data['transactionType'] = 'credit';
+         $transaction_data['reason'] = 'Pool account top-up';
+         $transaction_data['initiatorId'] = Auth::id();
+         EwalletTransaction::create($transaction_data);
+
+         
+        return response()->json([
+            'message' => 'Pool credited successfully',
+            'new_balance' => $pool->balance
+        ]);
     });
+    
+    
     
 
     Route::post('/hospital-users', [UserController::class, 'createHospitalStaff']);

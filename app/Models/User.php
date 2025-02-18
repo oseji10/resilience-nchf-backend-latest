@@ -30,6 +30,7 @@ class User extends Authenticatable
         'languageId'
     ];
     protected $dates = ['deleted_at'];
+    protected $hidden = ['password'];
 
     public function role()
     {

@@ -24,7 +24,7 @@ class PatientsController extends Controller
         $limit = $request->input('limit', 10);
         $searchQuery = $request->input('query');
         
-        $patients = Patients::with('doctor', 'hmo')
+        $patients = Patient::with('doctor', 'hmo')
             ->when($searchQuery, function ($query, $searchQuery) {
                 $query->where('firstName', 'like', "%{$searchQuery}%")
                     ->orWhere('lastName', 'like', "%{$searchQuery}%")
@@ -124,7 +124,7 @@ class PatientsController extends Controller
 
     public function retrieveAllPatients()
     {
-        $patients = Patients::with('doctor', 'hmo')
+        $patients = Patient::with('doctor', 'hmo')
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get(); 
@@ -150,7 +150,7 @@ class PatientsController extends Controller
         $data = $request->all();
     
         // Create a new user with the data (ensure that the fields are mass assignable in the model)
-        $patients = Patients::create($data);
+        $patients = Patient::create($data);
     
         // Return a response, typically JSON
         return response()->json([ $patients,
@@ -195,7 +195,7 @@ public function fundsUtilization(){
 
 // Delete Patient
 public function deletePatient($patientId){
-    $patient = Patients::find($patientId);
+    $patient = Patient::find($patientId);
 if ($patient) {
 $patient->delete();
 }

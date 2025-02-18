@@ -17,8 +17,8 @@ class PrescriptionItem extends Model
     'comments',
     'type',
     'quantity',
-    'prescribedBy'
-    
+    'prescribedBy',
+    'status',
     ];
 
     public function product(){

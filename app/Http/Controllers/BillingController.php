@@ -24,7 +24,19 @@ use Illuminate\Support\Facades\Validator;
 class BillingController extends Controller
 {
 
+  public function getHospitalId()  {
+    $hospitalAdminId = Auth::id(); 
     
+    // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+    $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+
+    if (!$currentHospital) {
+        return response()->json(['message' => 'Hospital admin not found'], 404);
+    }
+
+    return $currentHospital->hospitalId;
+
+  }
 
 public function generateCode()
 {
@@ -41,9 +53,34 @@ public function RetrieveAll()
 {
     // Retrieve all the transactions with related billing, patient, product, and service information
     $transactions = Billing::selectRaw('transactionId, created_at, paymentStatus, paymentMethod, GROUP_CONCAT(billingId) as billing_ids, patientId, SUM(cost*quantity) as total_cost')
-        ->with('patient.doctor')   // Eager load the patient relationship
+    ->with('patient.doctor',
+    'patient.user')   // Eager load the patient relationship
         ->with('product')   // Eager load the product relationship
         ->with('service')   // Eager load the service relationship
+        ->groupBy('transactionId', 'patientId', 'created_at', 'paymentStatus', 'paymentMethod')  // Group by necessary fields
+        ->get();
+
+    // Loop through each transaction and fetch associated transactions tied to the same transactionId
+    foreach ($transactions as $transaction) {
+        $transaction->relatedTransactions = Billing::where('transactionId', $transaction->transactionId)->get();
+    }
+
+    // Return the result with the related transactions
+    return response()->json($transactions);
+}
+
+
+// Hospital Billings
+public function retrieveHospitalBillings()
+{
+    $hospital = 
+    // Retrieve all the transactions with related billing, patient, product, and service information
+    $transactions = Billing::selectRaw('transactionId, created_at, paymentStatus, paymentMethod, GROUP_CONCAT(billingId) as billing_ids, patientId, SUM(cost*quantity) as total_cost')
+        ->with('patient.doctor',
+        'patient.user')  
+        ->with('product')   
+        ->with('service') 
+        ->where('hospitalId', $this->getHospitalId())  
         ->groupBy('transactionId', 'patientId', 'created_at', 'paymentStatus', 'paymentMethod')  // Group by necessary fields
         ->get();
 
@@ -85,7 +122,7 @@ public function updateBillingStatus(Request $request)
 
 public function createBilling(Request $request)
 {
-    $hospitalAdminId = Auth::id(); 
+     $hospitalAdminId = Auth::id(); 
     
         // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
         $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
@@ -94,7 +131,7 @@ public function createBilling(Request $request)
             return response()->json(['message' => 'Hospital admin not found'], 404);
         }
     
-        $hospitalId = $currentHospital->hospitalId;
+       $hospitalId = $currentHospital->hospitalId;
 
     // Generate a unique transaction ID
     $transactionId = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
@@ -147,7 +184,22 @@ public function createBilling(Request $request)
                 'cost'          => $totalCost,
                 'billedBy'      => Auth::user()->id,
                 'paymentStatus' => 'paid',
+                'hospitalId' => $hospitalId,
+                'status' => 'fulfilled'
             ]);
+
+            $prescriptionId = $request->prescriptionId;
+
+            $prescription = Prescription::where('prescriptionId', $prescriptionId);
+            if (!$prescription) {
+                return response()->json([
+                    'error' => 'Prescription not found',
+                ]); 
+            }
+        
+            $data['status'] = 'fulfilled';
+            $prescription->update($data);
+            
 
             // Update inventory
             $inventory->quantitySold += $item['dispensedQuantity'];
@@ -155,6 +207,7 @@ public function createBilling(Request $request)
 
             $billedItems[] = $billing;
         }
+
 
         // Fetch the hospital e-wallet
         $wallet = Ewallet::where('hospitalId', $hospitalId)->first();
@@ -276,6 +329,7 @@ public function createBilling(Request $request)
             'prescriptionId' => $prescriptionId,
             'prescribedBy' => Auth::id(),
             'hospitalId' => $hospitalId,
+            'status' => 'pending',
         ]);
 
         // Store prescription items
@@ -286,6 +340,7 @@ public function createBilling(Request $request)
                 'productId' => $item['type'] === 'product' ? $item['productId'] : null,
                 'serviceId' => $item['type'] === 'service' ? $item['serviceId'] : null,
                 'quantity' => $item['type'] === 'product' ? $item['quantity'] : null,
+                'status' => 'pending',
             ]);
         }
 
@@ -317,6 +372,7 @@ public function createBilling(Request $request)
         ->whereHas('patient', function ($query) use ($hospitalId) {
             $query->where('hospital', $hospitalId); // Ensure user has roleId = 1
         })
+        ->where('status', 'pending')
         ->orderBy('created_at', 'desc')
         ->get();
         

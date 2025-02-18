@@ -28,6 +28,7 @@ class Billing extends Model
     'status',
     'comments',
     'billedBy',
+    'hospitalId',
     ];
 
     
@@ -50,7 +51,7 @@ class Billing extends Model
 
     public function patient()
     {
-        return $this->belongsTo(Patients::class, 'patientId', 'patientId');
+        return $this->belongsTo(Patient::class, 'patientId', 'patientId');
     }
 
     public function service()

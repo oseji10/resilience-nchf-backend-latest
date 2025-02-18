@@ -19,6 +19,7 @@ class Prescription extends Model
     'quantity',
     'prescribedBy',
     'hospitalId',
+    'status',
     ];
 
     public function item(){
