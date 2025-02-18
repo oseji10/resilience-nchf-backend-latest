@@ -43,8 +43,8 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ \Carbon\Carbon::parse($billing->created_at)->format('d/m/Y') }}</td>
-                    <td>{{ $billing->patientId }}</td>
                     <td>{{ $billing->transactionId }}</td>
+                    <td>{{ $billing->patientId }}</td>
                     <!-- <td>{{ \Carbon\Carbon::parse($billing->admission_date)->format('d/m/Y') }}</td>
                     <td>{{ \Carbon\Carbon::parse($billing->discharge_date)->format('d/m/Y') }}</td> -->
                     <td>N{{ number_format($billing->total_cost, 2) }}</td>
