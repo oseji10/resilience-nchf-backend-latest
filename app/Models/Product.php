@@ -35,4 +35,9 @@ class Product extends Model
     public function stock(){
         return $this->belongsTo(Inventory::class, 'productId');
     }
+
+    public function consumption()
+    {
+        return $this->hasMany(Billing::class, 'productId');
+    } 
 }

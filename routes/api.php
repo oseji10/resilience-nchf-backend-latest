@@ -37,6 +37,7 @@ use App\Http\Controllers\SocialWelfareAssessmentController;
 use App\Http\Controllers\MDTAssessmentController;
 use App\Http\Controllers\CMDAssessmentController;
 use App\Http\Controllers\NICRATAssessmentController;
+use App\Http\Controllers\AnalyticsController;
 
 
 /*
@@ -163,11 +164,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient/nicrat/reviewed', [NICRATAssessmentController::class, 'NICRATReviewedPatients']);
     Route::post('/patient/nicrat/assessment', [NICRATAssessmentController::class, 'NICRATAssessment']);
     
-    Route::get('/hospital/prescriptions', [BillingController::class, 'hospitalPrescriptions']);
+    Route::get('/hospital/prescriptions/all', [BillingController::class, 'allHospitalPrescriptions']);
+    Route::get('/hospital/prescriptions/pending', [BillingController::class, 'hospitalPrescriptions']);
     Route::post('/prescriptions', [BillingController::class, 'storePrescription']);
     Route::get('/prescriptions/{prescriptionId}', [BillingController::class, 'patientDrugPrescriptions']);
     Route::post('/dispense', [BillingController::class, 'createBilling']);
     
+    Route::get('/analytics', [AnalyticsController::class, 'getNICRATAnalytics']);
+
     Route::post('/states', function (Request $request) {
         $states = $request->all(); // Expecting an array of states
     

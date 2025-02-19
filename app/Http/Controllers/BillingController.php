@@ -350,8 +350,38 @@ public function createBilling(Request $request)
         ], 201);
     }
     
-
+    
 // Hospital Prescriptions
+    public function allHospitalPrescriptions(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $hospitalId = $currentHospital->hospitalId;
+    
+        $prescriptions = Prescription::with('patient.user', 'patient.cancer')
+        ->whereHas('patient.user', function ($query) {
+            $query->where('role', 1); // Ensure user has roleId = 1
+        })
+        ->whereHas('patient', function ($query) use ($hospitalId) {
+            $query->where('hospital', $hospitalId); // Ensure user has roleId = 1
+        })
+        // ->where('status', 'pending')
+        ->orderBy('created_at', 'desc')
+        ->get();
+        
+
+    
+        return response()->json($prescriptions);
+    }
+
+
     public function hospitalPrescriptions(Request $request)
     {
         $hospitalAdminId = Auth::id(); 

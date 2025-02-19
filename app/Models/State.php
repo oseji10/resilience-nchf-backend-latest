@@ -20,6 +20,17 @@ class State extends Model
     public function zone()
     {
         return $this->belongsTo(Zone::class, 'zoneId');
-    }    
+    }   
+    
+    public function patientsOrigin()
+    {
+        return $this->hasMany(Patient::class, 'stateOfOrigin', 'stateId');
+    } 
 
+    public function patientsResidence()
+    {
+        return $this->hasMany(Patient::class, 'stateOfResidence', 'stateId');
+    } 
+
+    
 }

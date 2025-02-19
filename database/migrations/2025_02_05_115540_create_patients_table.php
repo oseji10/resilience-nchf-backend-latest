@@ -36,6 +36,7 @@ return new class extends Migration
             $table->unsignedBigInteger('hmo')->nullable();
             $table->string('hmoNumber')->nullable();
             $table->unsignedBigInteger('cancer')->nullable();
+            $table->string('cancerStage')->nullable();
             $table->unsignedBigInteger('doctor')->nullable();
             $table->string('status')->nullable();
             // $table->enum('status', ['application_in_progress', 'pending_doctor_review', 'doctor_approved', 'social_worker_approved', 'tumour_board_approved', 'cmd_approved', 'final_approval', 'rejected', 'disabled', 'deceased', 'cured',])->default('application_in_progress')->nullable();

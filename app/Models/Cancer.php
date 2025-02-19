@@ -15,4 +15,9 @@ class Cancer extends Model
         'cancerName',
     ];
     protected $primaryKey = 'cancerId';
+
+    public function patientsCancer()
+    {
+        return $this->hasMany(Patient::class, 'cancer', 'cancerId');
+    } 
 }

@@ -55,4 +55,9 @@ class Hospital extends Model
     {
         return $this->hasOne(Ewallet::class, 'hospitalId');
     }
+
+    public function patients()
+    {
+        return $this->hasMany(Patient::class, 'hospital', 'hospitalId');
+    }
 }
