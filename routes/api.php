@@ -133,6 +133,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/patients', [PatientsController::class, 'retrieveAll']);
     Route::get('/hospital/patients', [PatientsController::class, 'hospitalPatients']);
+    Route::get('/patient/billings', [BillingController::class, 'patientBillings']);
     Route::get('/hospital/doctors', [PatientsController::class, 'hospitalDoctors']);
     Route::post('/patient/doctor/assign', [PatientsController::class, 'assignDoctor']);
     Route::get('/hospital/ewallet/balance', [HospitalController::class, 'hospitalEwalletBalance']);

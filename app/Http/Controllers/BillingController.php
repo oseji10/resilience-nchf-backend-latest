@@ -70,6 +70,32 @@ public function RetrieveAll()
 }
 
 
+public function patientBillings()
+{
+    $user = Patient::where('userId', Auth::id())->first();
+    //  $transactions = Billing::where('patientId', Auth::id())->get();
+    // Retrieve all the transactions with related billing, patient, product, and service information
+    $transactions = Billing::selectRaw('transactionId, created_at, paymentStatus, paymentMethod, GROUP_CONCAT(billingId) as billing_ids, patientId, SUM(cost*quantity) as total_cost')
+    // ->with('patient.doctor',
+    // 'patient.user')   // Eager load the patient relationship
+        ->with('product')   // Eager load the product relationship
+        ->with('service')  
+        ->where('patientId', $user->patientId) // Eager load the service relationship
+        ->groupBy('transactionId', 'patientId', 'created_at', 'paymentStatus', 'paymentMethod')  // Group by necessary fields
+        ->get();
+
+    // Loop through each transaction and fetch associated transactions tied to the same transactionId
+    foreach ($transactions as $transaction) {
+        $transaction->relatedTransactions = Billing::where('transactionId', $transaction->transactionId)->get();
+    }
+
+    // Return the result with the related transactions
+    return response()->json($transactions);
+}
+
+
+
+
 // Hospital Billings
 public function retrieveHospitalBillings()
 {
