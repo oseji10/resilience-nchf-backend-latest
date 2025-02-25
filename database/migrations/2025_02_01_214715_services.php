@@ -20,9 +20,11 @@ return new class extends Migration
             $table->string('serviceCost')->nullable();
             $table->string('servicePrice')->nullable();
             $table->string('serviceStatus')->nullable();
+            $table->unsignedBigInteger('hospitalId')->nullable();
             $table->unsignedBigInteger('uploadedBy')->nullable();
             $table->timestamps();
 
+            $table->foreign('hospitalId')->references('hospitalId')->on('hospitals');
             $table->foreign('uploadedBy')->references('id')->on('users');
         });
     }

@@ -22,14 +22,14 @@ return new class extends Migration
             $table->string('noOfGoodSetOfClothes')->nullable();
             $table->string('howAreClothesGotten')->nullable();
             $table->text('whyDidYouChooseHospital')->nullable();
-            $table->unsignedBigInteger('hospitalReceivingCare')->nullable();
+            $table->string('hospitalReceivingCare')->nullable();
             $table->string('levelOfSpousalSpupport')->nullable();
             $table->string('otherSupport')->nullable();
             $table->unsignedBigInteger('reviewerId')->nullable();
             $table->string('status')->nullable();
             $table->foreign('patientUserId')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('reviewerId')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('hospitalReceivingCare')->references('hospitalId')->on('hospitals')->onDelete('cascade');
+            // $table->foreign('hospitalReceivingCare')->references('hospitalId')->on('hospitals')->onDelete('cascade');
             
             $table->timestamps();
             $table->softDeletes();

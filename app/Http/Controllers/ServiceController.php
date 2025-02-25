@@ -11,7 +11,16 @@ class ServiceController extends Controller
 {
     public function retrieveAll()
     {
-        $service = Service::all();
+        $service = Service::with('hospital')->get();
+        return response()->json($service);
+       
+    }
+
+    public function hospitalServices($hospitalId)
+    {
+        $service = Service::with('hospital')
+        ->where('hospitalId', $hospitalId)
+        ->get();
         return response()->json($service);
        
     }

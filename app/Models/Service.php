@@ -18,8 +18,8 @@ class Service extends Model
     'serviceCost',
     'servicePrice',
     'serviceStatus',
-    'uploadedBy'
-
+    'uploadedBy',
+    'hospitalId',
 
     ];
 
@@ -28,5 +28,10 @@ class Service extends Model
     public function productUploads()
     {
         return $this->belongsTo(DocumentUpload::class, 'uploadedBy', 'documentId');
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class, 'hospitalId', 'hospitalId');
     }
 }

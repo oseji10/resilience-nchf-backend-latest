@@ -35,7 +35,21 @@ class PatientBiodataController extends Controller
        
     }
 
-
+   public function generateCustomID() {
+        // Generate 9 random digits
+        $numbers = substr(str_shuffle("0123456789"), 0, 9);
+    
+        // Generate 1 random uppercase letter
+        $letter = chr(rand(65, 90)); // ASCII values for A-Z
+    
+        // Combine them
+        return $numbers . $letter;
+    }
+    
+    // Example usage
+    // $uniqueID = generateCustomID();
+    // echo $uniqueID;
+    
     public function store(Request $request)
     {
         // Validate request data
@@ -43,9 +57,10 @@ class PatientBiodataController extends Controller
     
         // Retrieve hospital data
         $hospital = Hospital::findOrFail($data['hospital']); // Safe fetch
-        $uniqueID = substr(md5(uniqid()), 0, 10);
+        // $uniqueID = substr(md5(uniqid()), 0, 10);
+        $uniqueID = $this->generateCustomID();
     
-        $statusId = StatusList::orderBy('statusId')->skip(1)->value('statusId');
+        // $statusId = StatusList::orderBy('statusId')->skip(1)->value('statusId');
 
         // Prepare additional fields
         $data['userId'] = Auth::id();
@@ -70,7 +85,7 @@ class PatientBiodataController extends Controller
         'noOfGoodSetOfClothes'  => $data['noOfGoodSetOfClothes'] ?? null,
         'howAreClothesGotten'   => $data['howAreClothesGotten'] ?? null,
         'whyDidYouChooseHospital' => $data['whyDidYouChooseHospital'] ?? null,
-        'hospitalReceivingCare' => $data['hospitalReceivingCare'] ?? null,
+        'hospitalReceivingCare2' => $data['hospitalReceivingCare2'] ?? null,
         'levelOfSpousalSpupport' => $data['levelOfSpousalSpupport'] ?? null,
         'otherSupport'          => $data['otherSupport'] ?? null,
         
@@ -117,7 +132,7 @@ $familyHistory = FamilyHistory::firstOrCreate(
         $status_data['patientUserId'] = Auth::id();
         $status_data['reviewerId'] = Auth::id();
         $status_data['reviewerRole'] = 1;
-        $status_data['statusId'] = $statusId;
+        $status_data['statusId'] = 2;
 
         $application_status = ApplicationReview::firstOrCreate(['patientUserId' => Auth::id()], // Check condition (unique constraint)
         $status_data);

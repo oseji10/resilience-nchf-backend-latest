@@ -24,6 +24,7 @@ class PersonalHistory extends Model
         'howAreClothesGotten',
         'whyDidYouChooseHospital',
         'hospitalReceivingCare',
+        'hospitalReceivingCare2',
         'levelOfSpousalSpupport',
         'otherSupport',
         'reviewerId',

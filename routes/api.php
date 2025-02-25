@@ -203,7 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/accessories', [ProductController::class, 'retrieveAccessories']);
    
     Route::get('/services', [ServiceController::class, 'retrieveAll']);
-    Route::get('/services', [ServiceController::class, 'retrieveAll']);
+    Route::get('hospital/{hospitalId}/services', [ServiceController::class, 'hospitalServices']);
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{id}', [ServiceController::class, 'update']);
     Route::delete('/services/{id}', [ServiceController::class, 'deleteService']); 
