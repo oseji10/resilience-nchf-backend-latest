@@ -38,7 +38,8 @@ use App\Http\Controllers\MDTAssessmentController;
 use App\Http\Controllers\CMDAssessmentController;
 use App\Http\Controllers\NICRATAssessmentController;
 use App\Http\Controllers\AnalyticsController;
-
+use App\Http\Controllers\MedicalHistoryController;
+use App\Http\Controllers\RejectedPatientsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -301,7 +302,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/patients/biodata', [PatientBiodataController::class, 'store']);
     Route::get('/patients/biodata/{phoneNumber}', [PatientBiodataController::class, 'retrievePatient']);
     Route::get('patient/{phoneNumber}/status', [PatientBiodataController::class, 'currentStatus']);
-    
+   
+    Route::get('/patient/rejected', [RejectedPatientsController::class, 'index']);
+    Route::post('/patient/rejected', [RejectedPatientsController::class, 'store']);
+
     Route::post('/doctor-assessment', [DoctorAssessmentController::class, 'RetrieveAll']);
     Route::get('/doctor-assessment', [DoctorAssessmentController::class, 'store']);
 
@@ -328,6 +332,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/referral', [PatientsController::class, 'initiatePatientReferral']);
     Route::get('/referral', [PatientsController::class, 'getPatientReferralPerDoctor']);
+    
+    Route::get('/patient-medical-history', [MedicalHistoryController::class, 'RetrieveAll']);
+    Route::get('/patient-medical-history/{patientUserId}', [MedicalHistoryController::class, 'getOnePatientMedicalHistory']);
+    Route::post('/patient-medical-history', [MedicalHistoryController::class, 'store']);
+    Route::put('/patient-medical-history', [MedicalHistoryController::class, 'update']);
+
+    
     
 });
 
