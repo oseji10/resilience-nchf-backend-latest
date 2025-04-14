@@ -43,9 +43,14 @@ use function trait_exists;
 use Exception;
 use Iterator;
 use IteratorAggregate;
+use PHPUnit\Event\Code\NoTestCaseObjectOnCallStackException;
+use PHPUnit\Event\Code\TestMethodBuilder;
+use PHPUnit\Event\Facade as EventFacade;
 use PHPUnit\Framework\InvalidArgumentException;
 use PHPUnit\Framework\MockObject\ConfigurableMethod;
 use PHPUnit\Framework\MockObject\DoubledCloneMethod;
+use PHPUnit\Framework\MockObject\GeneratedAsMockObject;
+use PHPUnit\Framework\MockObject\GeneratedAsTestStub;
 use PHPUnit\Framework\MockObject\Method;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\MockObjectApi;
@@ -62,8 +67,6 @@ use Throwable;
 use Traversable;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class Generator
@@ -94,18 +97,18 @@ final class Generator
     /**
      * Returns a test double for the specified class.
      *
+     * @throws ClassAlreadyExistsException
      * @throws ClassIsEnumerationException
      * @throws ClassIsFinalException
      * @throws ClassIsReadonlyException
      * @throws DuplicateMethodException
      * @throws InvalidMethodNameException
-     * @throws NameAlreadyInUseException
      * @throws OriginalConstructorInvocationRequiredException
      * @throws ReflectionException
      * @throws RuntimeException
      * @throws UnknownTypeException
      */
-    public function testDouble(string $type, bool $mockObject, ?array $methods = [], array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, bool $cloneArguments = true, bool $callOriginalMethods = false, ?object $proxyTarget = null, bool $allowMockingUnknownTypes = true, bool $returnValueGeneration = true): MockObject|Stub
+    public function testDouble(string $type, bool $mockObject, bool $markAsMockObject, ?array $methods = [], array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, bool $cloneArguments = true, bool $callOriginalMethods = false, object $proxyTarget = null, bool $allowMockingUnknownTypes = true, bool $returnValueGeneration = true): MockObject|Stub
     {
         if ($type === Traversable::class) {
             $type = Iterator::class;
@@ -116,7 +119,7 @@ final class Generator
         }
 
         $this->ensureValidMethods($methods);
-        $this->ensureNameForTestDoubleClassIsAvailable($mockClassName);
+        $this->ensureMockedClassDoesNotAlreadyExist($mockClassName);
 
         if (!$callOriginalConstructor && $callOriginalMethods) {
             throw new OriginalConstructorInvocationRequiredException;
@@ -125,6 +128,7 @@ final class Generator
         $mock = $this->generate(
             $type,
             $mockObject,
+            $markAsMockObject,
             $methods,
             $mockClassName,
             $callOriginalClone,
@@ -212,7 +216,7 @@ final class Generator
 
         eval($template->render());
 
-        return $this->testDouble($intersectionName, $mockObject);
+        return $this->testDouble($intersectionName, $mockObject, $mockObject);
     }
 
     /**
@@ -221,13 +225,13 @@ final class Generator
      *
      * Concrete methods to mock can be specified with the $mockedMethods parameter.
      *
+     * @throws ClassAlreadyExistsException
      * @throws ClassIsEnumerationException
      * @throws ClassIsFinalException
      * @throws ClassIsReadonlyException
      * @throws DuplicateMethodException
      * @throws InvalidArgumentException
      * @throws InvalidMethodNameException
-     * @throws NameAlreadyInUseException
      * @throws OriginalConstructorInvocationRequiredException
      * @throws ReflectionException
      * @throws RuntimeException
@@ -236,7 +240,7 @@ final class Generator
      *
      * @deprecated https://github.com/sebastianbergmann/phpunit/issues/5241
      */
-    public function mockObjectForAbstractClass(string $originalClassName, array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, ?array $mockedMethods = null, bool $cloneArguments = true): MockObject
+    public function mockObjectForAbstractClass(string $originalClassName, array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, array $mockedMethods = null, bool $cloneArguments = true): MockObject
     {
         if (class_exists($originalClassName, $callAutoload) ||
             interface_exists($originalClassName, $callAutoload)) {
@@ -255,6 +259,7 @@ final class Generator
 
             $mockObject = $this->testDouble(
                 $originalClassName,
+                true,
                 true,
                 $methods,
                 $arguments,
@@ -281,13 +286,13 @@ final class Generator
      *
      * @psalm-param trait-string $traitName
      *
+     * @throws ClassAlreadyExistsException
      * @throws ClassIsEnumerationException
      * @throws ClassIsFinalException
      * @throws ClassIsReadonlyException
      * @throws DuplicateMethodException
      * @throws InvalidArgumentException
      * @throws InvalidMethodNameException
-     * @throws NameAlreadyInUseException
      * @throws OriginalConstructorInvocationRequiredException
      * @throws ReflectionException
      * @throws RuntimeException
@@ -297,7 +302,7 @@ final class Generator
      *
      * @deprecated https://github.com/sebastianbergmann/phpunit/issues/5243
      */
-    public function mockObjectForTrait(string $traitName, array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, ?array $mockedMethods = null, bool $cloneArguments = true): MockObject
+    public function mockObjectForTrait(string $traitName, array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = true, bool $callOriginalClone = true, bool $callAutoload = true, array $mockedMethods = null, bool $cloneArguments = true): MockObject
     {
         if (!trait_exists($traitName, $callAutoload)) {
             throw new UnknownTraitException($traitName);
@@ -380,12 +385,13 @@ final class Generator
      *
      * @see https://github.com/sebastianbergmann/phpunit/issues/5476
      */
-    public function generate(string $type, bool $mockObject, ?array $methods = null, string $mockClassName = '', bool $callOriginalClone = true, bool $callAutoload = true, bool $cloneArguments = true, bool $callOriginalMethods = false): MockClass
+    public function generate(string $type, bool $mockObject, bool $markAsMockObject, array $methods = null, string $mockClassName = '', bool $callOriginalClone = true, bool $callAutoload = true, bool $cloneArguments = true, bool $callOriginalMethods = false): MockClass
     {
         if ($mockClassName !== '') {
             return $this->generateCodeForTestDoubleClass(
                 $type,
                 $mockObject,
+                $markAsMockObject,
                 $methods,
                 $mockClassName,
                 $callOriginalClone,
@@ -398,6 +404,7 @@ final class Generator
         $key = md5(
             $type .
             ($mockObject ? 'MockObject' : 'TestStub') .
+            ($markAsMockObject ? 'MockObject' : 'TestStub') .
             serialize($methods) .
             serialize($callOriginalClone) .
             serialize($cloneArguments) .
@@ -408,6 +415,7 @@ final class Generator
             self::$cache[$key] = $this->generateCodeForTestDoubleClass(
                 $type,
                 $mockObject,
+                $markAsMockObject,
                 $methods,
                 $mockClassName,
                 $callOriginalClone,
@@ -563,7 +571,7 @@ final class Generator
      * @throws ReflectionException
      * @throws RuntimeException
      */
-    private function getObject(MockType $mockClass, string $type = '', bool $callOriginalConstructor = false, array $arguments = [], bool $callOriginalMethods = false, ?object $proxyTarget = null, bool $returnValueGeneration = true): object
+    private function getObject(MockType $mockClass, string $type = '', bool $callOriginalConstructor = false, array $arguments = [], bool $callOriginalMethods = false, object $proxyTarget = null, bool $returnValueGeneration = true): object
     {
         $className = $mockClass->generate();
         $object    = $this->instantiate($className, $callOriginalConstructor, $arguments);
@@ -586,7 +594,7 @@ final class Generator
      * @throws ReflectionException
      * @throws RuntimeException
      */
-    private function generateCodeForTestDoubleClass(string $type, bool $mockObject, ?array $explicitMethods, string $mockClassName, bool $callOriginalClone, bool $callAutoload, bool $cloneArguments, bool $callOriginalMethods): MockClass
+    private function generateCodeForTestDoubleClass(string $type, bool $mockObject, bool $markAsMockObject, ?array $explicitMethods, string $mockClassName, bool $callOriginalClone, bool $callAutoload, bool $cloneArguments, bool $callOriginalMethods): MockClass
     {
         $classTemplate         = $this->loadTemplate('test_double_class.tpl');
         $additionalInterfaces  = [];
@@ -746,6 +754,25 @@ final class Generator
 
         if ($mockObject) {
             $traits[] = MockObjectApi::class;
+        }
+
+        if ($markAsMockObject) {
+            $traits[] = GeneratedAsMockObject::class;
+        } else {
+            $traits[] = GeneratedAsTestStub::class;
+        }
+
+        if ($mockMethods->hasMethod('method') || (isset($class) && $class->hasMethod('method'))) {
+            $message = 'Doubling interfaces (or classes) that have a method named "method" is deprecated. Support for this will be removed in PHPUnit 12.';
+
+            try {
+                EventFacade::emitter()->testTriggeredPhpunitDeprecation(
+                    TestMethodBuilder::fromCallStack(),
+                    $message,
+                );
+            } catch (NoTestCaseObjectOnCallStackException) {
+                EventFacade::emitter()->testRunnerTriggeredDeprecation($message);
+            }
         }
 
         if (!$mockMethods->hasMethod('method') && (!isset($class) || !$class->hasMethod('method'))) {
@@ -924,19 +951,17 @@ final class Generator
     }
 
     /**
-     * @throws NameAlreadyInUseException
+     * @throws ClassAlreadyExistsException
      * @throws ReflectionException
      */
-    private function ensureNameForTestDoubleClassIsAvailable(string $className): void
+    private function ensureMockedClassDoesNotAlreadyExist(string $mockClassName): void
     {
-        if ($className === '') {
-            return;
-        }
+        if ($mockClassName !== '' && class_exists($mockClassName, false)) {
+            $reflector = $this->reflectClass($mockClassName);
 
-        if (class_exists($className, false) ||
-            interface_exists($className, false) ||
-            trait_exists($className, false)) {
-            throw new NameAlreadyInUseException($className);
+            if (!$reflector->implementsInterface(MockObject::class)) {
+                throw new ClassAlreadyExistsException($mockClassName);
+            }
         }
     }
 

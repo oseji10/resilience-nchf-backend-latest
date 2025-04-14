@@ -326,6 +326,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/social-condition', [SocialCondtionController::class, 'RetrieveAll']);
     Route::get('/social-condition', [SocialCondtionController::class, 'store']);
 
+    Route::post('/referral', [PatientsController::class, 'initiatePatientReferral']);
+    Route::get('/referral', [PatientsController::class, 'getPatientReferralPerDoctor']);
     
 });
 

@@ -14,11 +14,9 @@ use DOMElement;
 use DOMXPath;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final class RemoveLoggingElements implements Migration
+final readonly class RemoveLoggingElements implements Migration
 {
     public function migrate(DOMDocument $document): void
     {

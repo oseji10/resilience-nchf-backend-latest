@@ -9,7 +9,6 @@
  */
 namespace PHPUnit\Event\Test;
 
-use const PHP_EOL;
 use function sprintf;
 use PHPUnit\Event\Code;
 use PHPUnit\Event\Code\Throwable;
@@ -21,16 +20,16 @@ use PHPUnit\Event\Telemetry;
  *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  */
-final class BeforeFirstTestMethodErrored implements Event
+final readonly class BeforeFirstTestMethodErrored implements Event
 {
-    private readonly Telemetry\Info $telemetryInfo;
+    private Telemetry\Info $telemetryInfo;
 
     /**
      * @psalm-var class-string
      */
-    private readonly string $testClassName;
-    private readonly Code\ClassMethod $calledMethod;
-    private readonly Throwable $throwable;
+    private string $testClassName;
+    private Code\ClassMethod $calledMethod;
+    private Throwable $throwable;
 
     /**
      * @psalm-param class-string $testClassName

@@ -12,13 +12,11 @@ namespace PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\MockObject\Invocation;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final class ReturnStub implements Stub
+final readonly class ReturnStub implements Stub
 {
-    private readonly mixed $value;
+    private mixed $value;
 
     public function __construct(mixed $value)
     {

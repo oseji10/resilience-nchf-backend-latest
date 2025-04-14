@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Patient;
 use App\Models\Doctors;
@@ -15,6 +15,10 @@ use App\Models\CMDAssessment;
 use App\Models\NICRATAssessment;
 use App\Models\ApplicationReview;
 use App\Models\Billing;
+use App\Models\PatientReferral;
+use App\Models\PatientReferralService;
+use App\Models\PatientTransfer;
+
 use Illuminate\Support\Facades\Auth;
 
 class PatientsController extends Controller
@@ -201,5 +205,74 @@ $patient->delete();
 }
 return response()->json($patient, 201);
 }
+   
+
+// A doctor should see all patients referred by him
+public function getPatientReferralPerDoctor(){
+    $hospitalAdminId = Auth::id(); 
     
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+
+    $referrals = PatientReferral::with('referred_hospital', 'user')
+    ->where('referringHospital', $currentHospital->hospitalId)
+    ->get();
+    return response()->json($referrals);
+}
+
+public function initiatePatientReferral(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $referringHospital = $currentHospital->hospitalId;
+
+        $validator = Validator::make($request->all(), [
+            'patientId' => 'required|exists:users,id',
+            'hospitalId' => 'required|exists:hospitals,hospitalId',
+            'services' => 'required|array|min:1',
+            'services.*' => 'exists:services,serviceId',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        try {
+            $referral = PatientReferral::create([
+                'patientUserId' => $request->patientId,
+                'referringHospital' => $referringHospital, 
+                'referredHospital' => $request->hospitalId,
+                'referringDoctor' => Auth::id(),
+                'referringDoctorComment' => $request->comment,
+                'status' => 'pending_mdt_approval', 
+            ]);
+
+            foreach ($request->services as $serviceId) {
+                PatientReferralService::create([
+                    'patientUserId' => $request->patientId,
+                    'referralId' => $referral->referralId,
+                    'serviceId' => $serviceId,
+                    'hospitalId' => $request->hospitalId,
+                ]);
+            }
+
+            return response()->json(['message' => 'Referral submitted successfully.'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to submit referral.', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+
+
 }

@@ -15,13 +15,13 @@ use function strtolower;
 use Countable;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\SelfDescribing;
-use PHPUnit\Util\Exporter;
 use SebastianBergmann\Comparator\ComparisonFailure;
+use SebastianBergmann\Exporter\Exporter;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  */
-abstract class Constraint implements Countable, SelfDescribing
+abstract readonly class Constraint implements Countable, SelfDescribing
 {
     /**
      * Evaluates the constraint for parameter $other.
@@ -63,14 +63,6 @@ abstract class Constraint implements Countable, SelfDescribing
     }
 
     /**
-     * @deprecated
-     */
-    protected function exporter(): \SebastianBergmann\Exporter\Exporter
-    {
-        return new \SebastianBergmann\Exporter\Exporter;
-    }
-
-    /**
      * Evaluates the constraint for parameter $other. Returns true if the
      * constraint is met, false otherwise.
      *
@@ -86,7 +78,7 @@ abstract class Constraint implements Countable, SelfDescribing
      *
      * @throws ExpectationFailedException
      */
-    protected function fail(mixed $other, string $description, ?ComparisonFailure $comparisonFailure = null): never
+    protected function fail(mixed $other, string $description, ComparisonFailure $comparisonFailure = null): never
     {
         $failureDescription = sprintf(
             'Failed asserting that %s.',
@@ -131,7 +123,7 @@ abstract class Constraint implements Countable, SelfDescribing
      */
     protected function failureDescription(mixed $other): string
     {
-        return Exporter::export($other, true) . ' ' . $this->toString(true);
+        return (new Exporter)->export($other) . ' ' . $this->toString();
     }
 
     /**
@@ -171,7 +163,7 @@ abstract class Constraint implements Countable, SelfDescribing
             return '';
         }
 
-        return Exporter::export($other, true) . ' ' . $string;
+        return (new Exporter)->export($other) . ' ' . $string;
     }
 
     /**

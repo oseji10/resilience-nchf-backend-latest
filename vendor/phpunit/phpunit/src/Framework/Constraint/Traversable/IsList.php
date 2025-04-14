@@ -15,7 +15,7 @@ use function is_array;
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  */
-final class IsList extends Constraint
+final readonly class IsList extends Constraint
 {
     /**
      * Returns a string representation of the constraint.
@@ -46,6 +46,6 @@ final class IsList extends Constraint
      */
     protected function failureDescription(mixed $other): string
     {
-        return $this->valueToTypeStringFragment($other) . $this->toString(true);
+        return $this->valueToTypeStringFragment($other) . $this->toString();
     }
 }

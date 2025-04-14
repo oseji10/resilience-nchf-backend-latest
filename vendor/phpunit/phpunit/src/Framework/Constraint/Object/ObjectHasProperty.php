@@ -17,9 +17,9 @@ use ReflectionObject;
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  */
-final class ObjectHasProperty extends Constraint
+final readonly class ObjectHasProperty extends Constraint
 {
-    private readonly string $propertyName;
+    private string $propertyName;
 
     public function __construct(string $propertyName)
     {
@@ -66,7 +66,7 @@ final class ObjectHasProperty extends Constraint
             return sprintf(
                 'object of class "%s" %s',
                 $other::class,
-                $this->toString(true),
+                $this->toString(),
             );
         }
 
@@ -74,7 +74,7 @@ final class ObjectHasProperty extends Constraint
             '"%s" (%s) %s',
             $other,
             gettype($other),
-            $this->toString(true),
+            $this->toString(),
         );
     }
 }

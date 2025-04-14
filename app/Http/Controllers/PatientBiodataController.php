@@ -134,8 +134,10 @@ $familyHistory = FamilyHistory::firstOrCreate(
         $status_data['reviewerRole'] = 1;
         $status_data['statusId'] = 2;
 
-        $application_status = ApplicationReview::firstOrCreate(['patientUserId' => Auth::id()], // Check condition (unique constraint)
-        $status_data);
+        $application_status = ApplicationReview::create(
+            // ['patientUserId' => Auth::id()], 
+        $status_data
+    );
 
 
         // Check if the record already existed

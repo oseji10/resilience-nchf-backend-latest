@@ -13,26 +13,13 @@ use PHPUnit\Event\Code\ClassMethod;
 use PHPUnit\Event\Code\ComparisonFailure;
 use PHPUnit\Event\Code\Throwable;
 use PHPUnit\Event\TestSuite\TestSuite;
-use PHPUnit\Framework\Constraint;
 use PHPUnit\TextUI\Configuration\Configuration;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 interface Emitter
 {
-    /**
-     * @deprecated
-     */
-    public function exportObjects(): void;
-
-    /**
-     * @deprecated
-     */
-    public function exportsObjects(): bool;
-
     public function applicationStarted(): void;
 
     public function testRunnerStarted(): void;
@@ -98,22 +85,12 @@ interface Emitter
     /**
      * @psalm-param class-string $testClassName
      */
-    public function testBeforeTestMethodErrored(string $testClassName, ClassMethod $calledMethod, Throwable $throwable): void;
-
-    /**
-     * @psalm-param class-string $testClassName
-     */
     public function testBeforeTestMethodFinished(string $testClassName, ClassMethod ...$calledMethods): void;
 
     /**
      * @psalm-param class-string $testClassName
      */
     public function testPreConditionCalled(string $testClassName, ClassMethod $calledMethod): void;
-
-    /**
-     * @psalm-param class-string $testClassName
-     */
-    public function testPreConditionErrored(string $testClassName, ClassMethod $calledMethod, Throwable $throwable): void;
 
     /**
      * @psalm-param class-string $testClassName
@@ -126,16 +103,6 @@ interface Emitter
      * @psalm-param class-string $className
      */
     public function testRegisteredComparator(string $className): void;
-
-    /**
-     * @deprecated
-     */
-    public function testAssertionSucceeded(mixed $value, Constraint\Constraint $constraint, string $message): void;
-
-    /**
-     * @deprecated
-     */
-    public function testAssertionFailed(mixed $value, Constraint\Constraint $constraint, string $message): void;
 
     /**
      * @psalm-param class-string $className
@@ -204,7 +171,7 @@ interface Emitter
     /**
      * @psalm-param non-empty-string $message
      */
-    public function testTriggeredPhpunitDeprecation(Code\Test $test, string $message): void;
+    public function testTriggeredPhpunitDeprecation(?Code\Test $test, string $message): void;
 
     /**
      * @psalm-param non-empty-string $message
@@ -280,11 +247,6 @@ interface Emitter
     /**
      * @psalm-param class-string $testClassName
      */
-    public function testPostConditionErrored(string $testClassName, ClassMethod $calledMethod, Throwable $throwable): void;
-
-    /**
-     * @psalm-param class-string $testClassName
-     */
     public function testPostConditionFinished(string $testClassName, ClassMethod ...$calledMethods): void;
 
     /**
@@ -295,22 +257,12 @@ interface Emitter
     /**
      * @psalm-param class-string $testClassName
      */
-    public function testAfterTestMethodErrored(string $testClassName, ClassMethod $calledMethod, Throwable $throwable): void;
-
-    /**
-     * @psalm-param class-string $testClassName
-     */
     public function testAfterTestMethodFinished(string $testClassName, ClassMethod ...$calledMethods): void;
 
     /**
      * @psalm-param class-string $testClassName
      */
     public function testAfterLastTestMethodCalled(string $testClassName, ClassMethod $calledMethod): void;
-
-    /**
-     * @psalm-param class-string $testClassName
-     */
-    public function testAfterLastTestMethodErrored(string $testClassName, ClassMethod $calledMethod, Throwable $throwable): void;
 
     /**
      * @psalm-param class-string $testClassName
