@@ -20,13 +20,24 @@ return new class extends Migration
             $table->text('commentOnEnvironment')->nullable();
             $table->text('commentOnFamily')->nullable();
             $table->text('generalComment')->nullable();
+            $table->unsignedBigInteger('parent1Education')->nullable();
+            $table->unsignedBigInteger('parent1Occupation')->nullable();
+            $table->unsignedBigInteger('parent2Education')->nullable();
+            $table->unsignedBigInteger('parent2Occupation')->nullable();
+            $table->boolean('useSecondParent')->default(false);
+            $table->string('sesResult')->nullable();
+          
+
             $table->string('status')->nullable();
             
             $table->unsignedBigInteger('reviewerId')->nullable();
 
             $table->foreign('patientUserId')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('reviewerId')->references('id')->on('users')->onDelete('cascade');
-            
+            $table->foreign('parent1Education')->references('qualificationId')->on('social_welfare_ses_qualification')->onDelete('cascade');
+            $table->foreign('parent1Occupation')->references('occupationId')->on('social_welfare_ses_occupation')->onDelete('cascade');
+            $table->foreign('parent2Education')->references('qualificationId')->on('social_welfare_ses_qualification')->onDelete('cascade');
+            $table->foreign('parent2Occupation')->references('occupationId')->on('social_welfare_ses_occupation')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

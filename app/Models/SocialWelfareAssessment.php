@@ -23,6 +23,12 @@ class SocialWelfareAssessment extends Model
         'commentOnFamily',
         'generalComment',
         'status',
+        'parent1Education',
+        'parent2Education',
+        'parent1Occupation',
+        'parent2Occupation',
+        'useSecondParent',
+        'sesResult',
         'reviewerId'
     ];
 }

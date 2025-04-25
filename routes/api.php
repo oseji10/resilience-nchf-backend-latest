@@ -321,6 +321,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/social-welfare-assessment', [SocialWelfareAssessmentController::class, 'RetrieveAll']);
     Route::get('/social-welfare-assessment', [SocialWelfareAssessmentController::class, 'store']);
 
+    Route::get('/social-welfare/occupation', [SocialWelfareAssessmentController::class, 'retrieveOccupation']);
+    Route::get('/social-welfare/qualification', [SocialWelfareAssessmentController::class, 'retrieveQualification']);
+
     Route::post('/personal-history', [PersonalHistoryController::class, 'RetrieveAll']);
     Route::get('/personal-history', [PersonalHistoryController::class, 'store']);
 
@@ -333,6 +336,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/referral', [PatientsController::class, 'initiatePatientReferral']);
     Route::get('/referral', [PatientsController::class, 'getPatientReferralPerDoctor']);
     
+    Route::post('/transfer', [PatientsController::class, 'initiatePatientTransfer']);
+    Route::get('/transfer', [PatientsController::class, 'getPatientTransferPerDoctor']);
+    
+    
+
     Route::get('/patient-medical-history', [MedicalHistoryController::class, 'RetrieveAll']);
     Route::get('/patient-medical-history/{patientUserId}', [MedicalHistoryController::class, 'getOnePatientMedicalHistory']);
     Route::post('/patient-medical-history', [MedicalHistoryController::class, 'store']);

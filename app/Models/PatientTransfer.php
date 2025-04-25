@@ -25,4 +25,12 @@ class PatientTransfer extends Model
         'status',
     ];
     
+
+    public function transferred_hospital(){
+        return $this->belongsTo(Hospital::class, 'transferredHospital', 'hospitalId');
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class, 'patientUserId', 'id');
+    }
 }

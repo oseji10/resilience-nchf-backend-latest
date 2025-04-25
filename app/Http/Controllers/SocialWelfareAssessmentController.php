@@ -12,6 +12,8 @@ use App\Models\HospitalStaff;
 use App\Models\DoctorAssessment;
 
 use App\Models\ApplicationReview;
+use App\Models\SocialWelfareSESQualification;
+use App\Models\SocialWelfareSESOccupation;
 
 class SocialWelfareAssessmentController extends Controller
 {
@@ -161,12 +163,18 @@ public function socialWelfareAssessment(Request $request)
         'commentOnEnvironment' => $request->commentOnEnvironment,
         'commentOnFamily' => $request->commentOnFamily,
         'generalComment' => $request->generalComment,
+        'parent1Education' => $request->parent1Edu,
+        'parent2Education' => $request->parent2Edu,
+        'parent1Occupation' => $request->parent1Occ,
+        'parent2Occupation' => $request->parent2Occ,
+        'useSecondParent' => $request->useSecondParent,
+        'sesResult' => $request->sesResult,
         'status' => 4, 
     ];
 
     // Update patient record
     // $patient->update($data);
-    SocialWelfareAssessment::firstOrCreate($data);
+    SocialWelfareAssessment::create($data);
 
     $status_data['patientUserId'] = $patient->userId;
         $status_data['reviewerId'] = Auth::id();
@@ -185,6 +193,17 @@ public function socialWelfareAssessment(Request $request)
     ], 200);
 }
 
+public function retrieveOccupation()
+{
+    $occupations = SocialWelfareSESOccupation::all();
+    return response()->json($occupations);
 
+}
 
+public function retrieveQualification()
+{
+    $qualifications = SocialWelfareSESQualification::all();
+    return response()->json($qualifications);
+
+}
 }

@@ -224,6 +224,24 @@ public function getPatientReferralPerDoctor(){
     return response()->json($referrals);
 }
 
+
+// A doctor should see all patients referred by him
+public function getPatientTransferPerDoctor(){
+    $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+
+    $transfers = PatientTransfer::with('transferred_hospital', 'user')
+    ->where('transferringHospital', $currentHospital->hospitalId)
+    ->get();
+    return response()->json($transfers);
+}
+
 public function initiatePatientReferral(Request $request)
     {
         $hospitalAdminId = Auth::id(); 
@@ -273,6 +291,48 @@ public function initiatePatientReferral(Request $request)
         }
     }
 
+
+
+    public function initiatePatientTransfer(Request $request)
+    {
+        $hospitalAdminId = Auth::id(); 
+    
+        // Retrieve the hospitalId of the logged-in admin from the HospitalStaff table
+        $currentHospital = HospitalStaff::where('userId', $hospitalAdminId)->first();
+    
+        if (!$currentHospital) {
+            return response()->json(['message' => 'Hospital admin not found'], 404);
+        }
+    
+        $referringHospital = $currentHospital->hospitalId;
+
+        $validator = Validator::make($request->all(), [
+            'patientUserId' => 'required|exists:users,id',
+            'hospitalId' => 'required|exists:hospitals,hospitalId',
+           
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        try {
+            $referral = PatientTransfer::create([
+                'patientUserId' => $request->patientUserId,
+                'transferringHospital' => $referringHospital, 
+                'transferredHospital' => $request->hospitalId,
+                'transferringDoctor' => Auth::id(),
+                'transferringDoctorComment' => $request->comment,
+                'status' => 'pending_mdt_approval', 
+            ]);
+
+         
+
+            return response()->json(['message' => 'Transfer request submitted successfully.'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to submit transfer request.', 'details' => $e->getMessage()], 500);
+        }
+    }
 
 
 }
