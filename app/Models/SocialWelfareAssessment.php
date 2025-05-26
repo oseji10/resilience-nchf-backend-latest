@@ -31,4 +31,21 @@ class SocialWelfareAssessment extends Model
         'sesResult',
         'reviewerId'
     ];
+
+    public function ses_occupation1(){
+        return $this->belongsTo(SocialWelfareSESOccupation::class, 'parent1Occupation', 'occupationId');
+    }
+
+    public function ses_qualification1(){
+        return $this->belongsTo(SocialWelfareSESQualification::class, 'parent1Education', 'qualificationId');
+    }
+
+    public function ses_occupation2(){
+        return $this->belongsTo(SocialWelfareSESOccupation::class, 'parent2Occupation', 'occupationId');
+    }
+
+    public function ses_qualification2(){
+        return $this->belongsTo(SocialWelfareSESQualification::class, 'parent2Education', 'qualificationId');
+    }
 }
+

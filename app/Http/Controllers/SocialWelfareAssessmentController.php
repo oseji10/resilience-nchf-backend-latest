@@ -54,7 +54,7 @@ class SocialWelfareAssessmentController extends Controller
     
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
-        ->whereBetween('status', [1, 3])
+        ->whereBetween('status', [1, 4])
         // ->orWhere('status', 4)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
@@ -64,7 +64,10 @@ class SocialWelfareAssessmentController extends Controller
         'user',
         'cancer',
         'status.status_details',
-        'social_welfare_assessment' ,
+        'social_welfare_assessment.ses_qualification1',
+        'social_welfare_assessment.ses_occupation1',
+        'social_welfare_assessment.ses_qualification2',
+        'social_welfare_assessment.ses_occupation2',
     ])
     ->orderBy('updated_at', 'desc')
     ->get();
@@ -134,7 +137,10 @@ class SocialWelfareAssessmentController extends Controller
         'user',
         'cancer',
         'status.status_details',
-        'social_welfare_assessment' ,
+        'social_welfare_assessment.ses_qualification1',
+        'social_welfare_assessment.ses_occupation1',
+        'social_welfare_assessment.ses_qualification2',
+        'social_welfare_assessment.ses_occupation2'
     ])
     ->orderBy('updated_at', 'desc')
     ->get();

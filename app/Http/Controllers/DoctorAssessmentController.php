@@ -85,7 +85,7 @@ class DoctorAssessmentController extends Controller
         // Retrieve patients who belong to the same hospital and have users with roleId = 1
         $patients = Patient::where('hospital', $hospitalId)
         ->where('doctor', $hospitalAdminId)
-        ->where('status', 3)
+        ->where('status', '>=', 3)
     ->whereHas('user', function ($query) {
         $query->where('role', 1); // Ensure user has roleId = 1
     })
