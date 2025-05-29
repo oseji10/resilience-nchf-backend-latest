@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\AdminWelcomeEmail;
-use App\mail\NicratWelcomeEmail;
+use App\Mail\NicratWelcomeEmail;
 use GuzzleHttp\Client;
 use App\Models\Hospital;
 use App\Models\HospitalStaff;
