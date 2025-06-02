@@ -64,7 +64,7 @@ class PatientBiodataController extends Controller
 
         // Prepare additional fields
         $data['userId'] = Auth::id();
-        $data['chfId'] = "CHF-{$hospital->hospitalShortName}-$uniqueID";
+        $data['chfId'] = "NCCF-{$hospital->hospitalShortName}-$uniqueID";
         $data['status'] = 2;
         
         // Use `firstOrCreate` to prevent duplicate records
@@ -95,7 +95,7 @@ class PatientBiodataController extends Controller
     $patientHistoryData);
 
  // Store Family History
- $familyData = [
+    $familyData = [
     'patientUserId'           => Auth::id(),
     'familySetupSize'         => $data['familySetupSize'] ?? null,
     'birthOrder'              => $data['birthOrder'] ?? null,
@@ -140,7 +140,7 @@ $familyHistory = FamilyHistory::firstOrCreate(
     );
 
 
-        // Check if the record already existed
+        // Check if the record already exists
         if (!$patient->wasRecentlyCreated) {
             return response()->json(['error' => 'You have already started an application'], 409);
         }
