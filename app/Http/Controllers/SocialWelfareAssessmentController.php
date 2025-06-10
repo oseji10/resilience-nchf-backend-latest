@@ -151,6 +151,24 @@ class SocialWelfareAssessmentController extends Controller
 
 
     
+public function patientSocialWelfareAssessment(Request $request, $patientId){
+    // Find the patient by ID
+    
+    $patient = Patient::where('patientId', '=', $request->patientId)->first();
+
+    // Retrieve the social welfare assessment for the patient
+     $socialWelfareAssessment = SocialWelfareAssessment::where('patientUserId', $patient->userId)->first();
+
+    if (!$socialWelfareAssessment) {
+        return response()->json(['message' => 'Social welfare assessment not found'], 404);
+    }
+
+    // Return the patient and their social welfare assessment
+    return response()->json(
+        $socialWelfareAssessment,
+    );
+}
+
 // SOCIAL WELFARE ASSESSMENT
 public function socialWelfareAssessment(Request $request)
 {

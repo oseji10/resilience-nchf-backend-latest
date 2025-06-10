@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
-
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasFactory;
     use SoftDeletes;
@@ -32,6 +32,20 @@ class User extends Authenticatable
     protected $dates = ['deleted_at'];
     protected $hidden = ['password'];
 
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); // Returns the user's primary key (e.g., ID)
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'role' => $this->role, // Add custom claims, e.g., role (pharmacist, doctor, etc.)
+        ];
+    }
+
+    
     public function role()
     {
         return $this->hasOne(Roles::class, 'roleId', 'role'); // Assuming doctorId is the foreign key

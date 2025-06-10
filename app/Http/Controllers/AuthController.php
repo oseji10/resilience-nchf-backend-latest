@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Doctors;
 use App\Mail\WelcomeEmail;
 use Illuminate\Support\Str;
+use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -20,38 +21,53 @@ class AuthController extends Controller
     // use Illuminate\Validation\ValidationException;
     // use App\Models\User;
     
+    protected $jwt;
+
+    public function __construct(JWTAuth $jwt)
+    {
+        $this->jwt = $jwt;
+    }
+
     public function login(Request $request)
     {
         $request->validate([
             'username' => 'required', // Can be email or phone number
             'password' => 'required',
         ]);
-    
+
         // Find user by email or phone number
         $user = User::where('email', $request->username)
                     ->orWhere('phoneNumber', $request->username)
                     ->first();
-    
+
         // If user is not found, return a custom error message
         if (!$user) {
             throw ValidationException::withMessages([
                 'username' => ['No account found with this email or phone number.'],
             ]);
         }
-    
-        // Check password
-        if (!Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => ['The password you entered is incorrect.'],
-            ]);
-        }
-    
+
+        // Check password and attempt JWT authentication
+        $credentials = [
+            'email' => $user->email, // Use the found user's email
+            'password' => $request->password,
+        ];
+
+        // if (!$token = $this->jwt->attempt($credentials)) {
+        //     throw ValidationException::withMessages([
+        //         'password' => ['The password you entered is incorrect.'],
+        //     ]);
+        // }
+
+        if (!$token = auth('api')->attempt($credentials)) {
+    return response()->json(['error' => 'Unauthorized'], 401);
+}
+
+
         // Hide password and other sensitive data
         $user->makeHidden(['password']);
-    
-        // Create a Sanctum token
-        $token = $user->createToken('auth-token')->plainTextToken;
-    
+
+        // Return user and JWT token
         return response()->json([
             'user' => $user,
             'token' => $token,

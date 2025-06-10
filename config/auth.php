@@ -42,7 +42,7 @@ return [
         ],
 
         'api' => [
-        'driver' => 'sanctum', // Ensure Sanctum is the driver
+        'driver' => 'jwt', // Ensure Sanctum is the driver
         'provider' => 'users',
     ],
     ],

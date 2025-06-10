@@ -129,7 +129,7 @@ Route::delete('/manufacturers/{manufacturerId}', [ManufacturersController::class
 
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     Route::post('/generate-invoice', [InvoiceController::class, 'generateInvoice']);
 
     Route::get('/patients', [PatientsController::class, 'retrieveAll']);
@@ -150,7 +150,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient/social-welfare/pending', [SocialWelfareAssessmentController::class, 'socialWelfarePendingPatients']);
     Route::get('/patient/social-welfare/reviewed', [SocialWelfareAssessmentController::class, 'socialWelfareReviewedPatients']);
     Route::post('/patient/social-welfare/assessment', [SocialWelfareAssessmentController::class, 'socialWelfareAssessment']);
+    Route::get('/patient/social-welfare/assessment/{patientId}', [SocialWelfareAssessmentController::class, 'patientSocialWelfareAssessment']);
     
+
     Route::get('/patient/mdt/all', [MDTAssessmentController::class, 'MDTPatients']);
     Route::get('/patient/mdt/pending', [MDTAssessmentController::class, 'MDTPendingPatients']);
     Route::get('/patient/mdt/reviewed', [MDTAssessmentController::class, 'MDTReviewedPatients']);
@@ -166,6 +168,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient/nicrat/reviewed', [NICRATAssessmentController::class, 'NICRATReviewedPatients']);
     Route::post('/patient/nicrat/assessment', [NICRATAssessmentController::class, 'NICRATAssessment']);
     
+    
+
     Route::get('/hospital/prescriptions/all', [BillingController::class, 'allHospitalPrescriptions']);
     Route::get('/hospital/prescriptions/pending', [BillingController::class, 'hospitalPrescriptions']);
     Route::post('/prescriptions', [BillingController::class, 'storePrescription']);
@@ -501,3 +505,6 @@ Route::get('/languages', function(){
 
 Route::post('/send-whatsapp', [UserController::class, 'sendSMS']);
 // Route::post('/send-whatsapp', 'UserController@sendWhatsAppNotificationSMS');
+
+
+Route::post('/dispense', [App\Http\Controllers\DispenseController::class, 'dispense']);
